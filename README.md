@@ -180,7 +180,6 @@ Expected Result: `true`
 - `QuantityMeasurementApp`
 - `QuantityMeasurementAppTest`
 
-(Refer to source files in the project for complete implementation.)
 QuantityMeasurementApp
 │
 ├── Models
