@@ -180,15 +180,13 @@ Expected Result: `true`
 - `QuantityMeasurementApp`
 - `QuantityMeasurementAppTest`
 
-QuantityMeasurementApp
-│
-├── Models
-│   └── Feet.cs
-│
-├── Services
-│   └── FeetServices.cs
-│
-├── Program.cs
-│
-└── QuantityMeasurementApp.Tests
-    └── FeetTests.cs
+## Project Structure
+
+QuantityMeasurementApp  
+├── Models  
+│   └── Feet.cs  
+├── Services  
+│   └── FeetServices.cs  
+├── Program.cs  
+└── QuantityMeasurementApp.Tests  
+    └── FeetTests.cs  
