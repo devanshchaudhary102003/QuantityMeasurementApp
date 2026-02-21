@@ -1,3 +1,6 @@
+## 📅 Date: 21 Febraury 2026
+
+### 📘 Topic
 ## UC2: Feet and Inches Measurement Equality
 
 ### Description
@@ -116,3 +119,4 @@ QuantityMeasurementApp
 └── QuantityMeasurementApp.Tests  
     ├── FeetTests.cs  
     └── InchesTests.cs  
+
