@@ -13,6 +13,8 @@ namespace QuantityMeasurementApp.Models
     /// </summary>
     public class QuantityLength
     {
+        private const double EPSILON = 0.0001;
+
         public double Value;
         public LengthUnit Unit;
 
@@ -139,20 +141,18 @@ namespace QuantityMeasurementApp.Models
             if (obj is null)
                 return false;
 
-            if (obj.GetType() != typeof(QuantityLength))
+            if (obj is not QuantityLength other)
                 return false;
-
-            QuantityLength other = (QuantityLength)obj;
 
             double firstValue = this.Unit.ConvertToBaseUnit(this.Value);
             double secondValue = other.Unit.ConvertToBaseUnit(other.Value);
 
-            return firstValue == secondValue;
+            return Math.Abs(firstValue - secondValue) < EPSILON;
         }
 
         public override int GetHashCode()
         {
-            return Unit.ConvertToBaseUnit(Value).GetHashCode();
+            return Math.Round(Unit.ConvertToBaseUnit(Value), 4).GetHashCode();
         }
 
         public override string ToString()
