@@ -1,0 +1,39 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ModelLayer/1.0.0": {
+        "dependencies": {
+          "QuantityMeasurementApp": "1.0.0"
+        },
+        "runtime": {
+          "ModelLayer.dll": {}
+        }
+      },
+      "QuantityMeasurementApp/1.0.0": {
+        "runtime": {
+          "QuantityMeasurementApp.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ModelLayer/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "QuantityMeasurementApp/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
