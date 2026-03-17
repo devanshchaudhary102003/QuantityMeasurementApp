@@ -1,6 +1,7 @@
 using QuantityMeasurementAppBusinessLayer.Exception;
 using QuantityMeasurementAppBusinessLayer.Interface;
 using QuantityMeasurementAppModelLayer.DTOs;
+using QuantityMeasurementAppModelLayer.Enums;
 using QuantityMeasurementAppModelLayer.Models;
 using QuantityMeasurementAppRepositoryLayer.Interface;
 
@@ -19,9 +20,7 @@ namespace QuantityMeasurementAppBusinessLayer.Service
         {
             Validate(first);
             Validate(second);
-
-            if (!first.Category.Equals(second.Category, StringComparison.OrdinalIgnoreCase))
-                throw new QuantityMeasurementException("Cannot compare different categories.");
+            EnsureSameCategory(first, second, "compare");
 
             double firstBase = ConvertToBase(first);
             double secondBase = ConvertToBase(second);
@@ -32,28 +31,78 @@ namespace QuantityMeasurementAppBusinessLayer.Service
             return Math.Abs(firstBase - secondBase) < 0.0001;
         }
 
-        public QuantityModel Add(QuantityDTO first, QuantityDTO second)
+        public QuantityDTO Add(QuantityDTO first, QuantityDTO second)
         {
             Validate(first);
             Validate(second);
+            EnsureSameCategory(first, second, "add");
+            EnsureArithmeticSupported(first.Category, "Addition");
 
-            if (!first.Category.Equals(second.Category, StringComparison.OrdinalIgnoreCase))
-                throw new QuantityMeasurementException("Cannot add different categories.");
-
-            if (first.Category.Equals("Temperature", StringComparison.OrdinalIgnoreCase))
-                throw new QuantityMeasurementException("Addition of temperature is not supported.");
-
-            double firstBase = ConvertToBase(first);
-            double secondBase = ConvertToBase(second);
+            double resultBase = ConvertToBase(first) + ConvertToBase(second);
 
             SaveHistory(first);
             SaveHistory(second);
 
-            return new QuantityModel
+            return CreateBaseResult(first.Category, resultBase);
+        }
+
+        public QuantityDTO Subtract(QuantityDTO first, QuantityDTO second)
+        {
+            Validate(first);
+            Validate(second);
+            EnsureSameCategory(first, second, "subtract");
+            EnsureArithmeticSupported(first.Category, "Subtraction");
+
+            double resultBase = ConvertToBase(first) - ConvertToBase(second);
+
+            SaveHistory(first);
+            SaveHistory(second);
+
+            return CreateBaseResult(first.Category, resultBase);
+        }
+
+        public QuantityDTO Multiply(QuantityDTO quantity, double factor)
+        {
+            Validate(quantity);
+            EnsureArithmeticSupported(quantity.Category, "Multiplication");
+
+            SaveHistory(quantity);
+
+            return CreateBaseResult(quantity.Category, ConvertToBase(quantity) * factor);
+        }
+
+        public QuantityDTO Divide(QuantityDTO quantity, double divisor)
+        {
+            Validate(quantity);
+            EnsureArithmeticSupported(quantity.Category, "Division");
+
+            if (Math.Abs(divisor) < 0.0001)
+                throw new QuantityMeasurementException("Divisor cannot be zero.");
+
+            SaveHistory(quantity);
+
+            return CreateBaseResult(quantity.Category, ConvertToBase(quantity) / divisor);
+        }
+
+        public QuantityDTO Convert(QuantityDTO source, string targetUnit)
+        {
+            Validate(source);
+
+            if (string.IsNullOrWhiteSpace(targetUnit))
+                throw new QuantityMeasurementException("Target unit is required.");
+
+            double baseValue = ConvertToBase(source);
+            string category = NormalizeCategory(source.Category);
+            string normalizedTargetUnit = NormalizeUnit(category, targetUnit);
+            double convertedValue = ConvertFromBase(category, baseValue, normalizedTargetUnit);
+
+            SaveHistory(source);
+
+            return new QuantityDTO
             {
-                BaseValue = firstBase + secondBase,
-                Unit = GetBaseUnit(first.Category),
-                Category = first.Category
+                Value = convertedValue,
+                Unit = normalizedTargetUnit,
+                Category = category
             };
         }
 
@@ -82,45 +131,71 @@ namespace QuantityMeasurementAppBusinessLayer.Service
 
             if (string.IsNullOrWhiteSpace(dto.Unit))
                 throw new QuantityMeasurementException("Unit is required.");
+
+            NormalizeUnit(dto.Category, dto.Unit);
+        }
+
+        private void EnsureSameCategory(QuantityDTO first, QuantityDTO second, string operation)
+        {
+            if (!NormalizeCategory(first.Category).Equals(NormalizeCategory(second.Category), StringComparison.OrdinalIgnoreCase))
+                throw new QuantityMeasurementException($"Cannot {operation} different categories.");
+        }
+
+        private void EnsureArithmeticSupported(string category, string operationName)
+        {
+            if (NormalizeCategory(category).Equals("Temperature", StringComparison.OrdinalIgnoreCase))
+                throw new QuantityMeasurementException($"{operationName} of temperature is not supported.");
+        }
+
+        private QuantityDTO CreateBaseResult(string category, double baseValue)
+        {
+            string normalizedCategory = NormalizeCategory(category);
+
+            return new QuantityDTO
+            {
+                Value = baseValue,
+                Unit = GetBaseUnit(normalizedCategory),
+                Category = normalizedCategory
+            };
         }
 
         private double ConvertToBase(QuantityDTO dto)
         {
-            string category = dto.Category.Trim().ToLower();
-            string unit = dto.Unit.Trim().ToLower();
+            string category = NormalizeCategory(dto.Category);
+            string unit = NormalizeUnit(category, dto.Unit);
 
             return category switch
             {
-                "length" => unit switch
+                "Length" => Enum.Parse<LengthUnit>(unit) switch
                 {
-                    "inch" => dto.Value,
-                    "feet" => dto.Value * 12,
-                    "yard" => dto.Value * 36,
-                    "centimeter" => dto.Value / 2.54,
+                    LengthUnit.Inch => dto.Value,
+                    LengthUnit.Feet => dto.Value * 12,
+                    LengthUnit.Yard => dto.Value * 36,
+                    LengthUnit.Centimeter => dto.Value / 2.54,
                     _ => throw new QuantityMeasurementException("Invalid length unit.")
                 },
 
-                "weight" => unit switch
+                "Weight" => Enum.Parse<WeightUnit>(unit) switch
                 {
-                    "gram" => dto.Value,
-                    "kilogram" => dto.Value * 1000,
-                    "tonne" => dto.Value * 1000000,
+                    WeightUnit.Gram => dto.Value,
+                    WeightUnit.Kilogram => dto.Value * 1000,
+                    WeightUnit.Tonne => dto.Value * 1000000,
                     _ => throw new QuantityMeasurementException("Invalid weight unit.")
                 },
 
-                "volume" => unit switch
+                "Volume" => Enum.Parse<VolumeUnit>(unit) switch
                 {
-                    "milliliter" => dto.Value,
-                    "liter" => dto.Value * 1000,
-                    "gallon" => dto.Value * 3785.41,
+                    VolumeUnit.Milliliter => dto.Value,
+                    VolumeUnit.Liter => dto.Value * 1000,
+                    VolumeUnit.Gallon => dto.Value * 3785.41,
                     _ => throw new QuantityMeasurementException("Invalid volume unit.")
                 },
 
-                "temperature" => unit switch
+                "Temperature" => Enum.Parse<TemperatureUnit>(unit) switch
                 {
-                    "celsius" => dto.Value,
-                    "fahrenheit" => (dto.Value - 32) * 5 / 9,
-                    "kelvin" => dto.Value - 273.15,
+                    TemperatureUnit.Celsius => dto.Value,
+                    TemperatureUnit.Fahrenheit => (dto.Value - 32) * 5 / 9,
+                    TemperatureUnit.Kelvin => dto.Value - 273.15,
                     _ => throw new QuantityMeasurementException("Invalid temperature unit.")
                 },
 
@@ -128,14 +203,95 @@ namespace QuantityMeasurementAppBusinessLayer.Service
             };
         }
 
+        private double ConvertFromBase(string category, double baseValue, string targetUnit)
+        {
+            return category switch
+            {
+                "Length" => Enum.Parse<LengthUnit>(targetUnit) switch
+                {
+                    LengthUnit.Inch => baseValue,
+                    LengthUnit.Feet => baseValue / 12,
+                    LengthUnit.Yard => baseValue / 36,
+                    LengthUnit.Centimeter => baseValue * 2.54,
+                    _ => throw new QuantityMeasurementException("Invalid target length unit.")
+                },
+
+                "Weight" => Enum.Parse<WeightUnit>(targetUnit) switch
+                {
+                    WeightUnit.Gram => baseValue,
+                    WeightUnit.Kilogram => baseValue / 1000,
+                    WeightUnit.Tonne => baseValue / 1000000,
+                    _ => throw new QuantityMeasurementException("Invalid target weight unit.")
+                },
+
+                "Volume" => Enum.Parse<VolumeUnit>(targetUnit) switch
+                {
+                    VolumeUnit.Milliliter => baseValue,
+                    VolumeUnit.Liter => baseValue / 1000,
+                    VolumeUnit.Gallon => baseValue / 3785.41,
+                    _ => throw new QuantityMeasurementException("Invalid target volume unit.")
+                },
+
+                "Temperature" => Enum.Parse<TemperatureUnit>(targetUnit) switch
+                {
+                    TemperatureUnit.Celsius => baseValue,
+                    TemperatureUnit.Fahrenheit => (baseValue * 9 / 5) + 32,
+                    TemperatureUnit.Kelvin => baseValue + 273.15,
+                    _ => throw new QuantityMeasurementException("Invalid target temperature unit.")
+                },
+
+                _ => throw new QuantityMeasurementException("Invalid category.")
+            };
+        }
+
+        private string NormalizeCategory(string category)
+        {
+            string normalizedCategory = category.Trim().ToLower();
+
+            return normalizedCategory switch
+            {
+                "length" => "Length",
+                "weight" => "Weight",
+                "volume" => "Volume",
+                "temperature" => "Temperature",
+                _ => throw new QuantityMeasurementException("Invalid category. Use Length, Weight, Volume, or Temperature.")
+            };
+        }
+
+        private string NormalizeUnit(string category, string unit)
+        {
+            string normalizedCategory = NormalizeCategory(category);
+
+            bool isValid = normalizedCategory switch
+            {
+                "Length" => Enum.TryParse(unit, true, out LengthUnit lengthUnit),
+                "Weight" => Enum.TryParse(unit, true, out WeightUnit weightUnit),
+                "Volume" => Enum.TryParse(unit, true, out VolumeUnit volumeUnit),
+                "Temperature" => Enum.TryParse(unit, true, out TemperatureUnit temperatureUnit),
+                _ => false
+            };
+
+            if (!isValid)
+                throw new QuantityMeasurementException($"Invalid unit '{unit}' for category '{normalizedCategory}'.");
+
+            return normalizedCategory switch
+            {
+                "Length" => Enum.Parse<LengthUnit>(unit, true).ToString(),
+                "Weight" => Enum.Parse<WeightUnit>(unit, true).ToString(),
+                "Volume" => Enum.Parse<VolumeUnit>(unit, true).ToString(),
+                "Temperature" => Enum.Parse<TemperatureUnit>(unit, true).ToString(),
+                _ => unit
+            };
+        }
+
         private string GetBaseUnit(string category)
         {
-            return category.Trim().ToLower() switch
+            return NormalizeCategory(category) switch
             {
-                "length" => "Inch",
-                "weight" => "Gram",
-                "volume" => "Milliliter",
-                "temperature" => "Celsius",
+                "Length" => LengthUnit.Inch.ToString(),
+                "Weight" => WeightUnit.Gram.ToString(),
+                "Volume" => VolumeUnit.Milliliter.ToString(),
+                "Temperature" => TemperatureUnit.Celsius.ToString(),
                 _ => "Unknown"
             };
         }

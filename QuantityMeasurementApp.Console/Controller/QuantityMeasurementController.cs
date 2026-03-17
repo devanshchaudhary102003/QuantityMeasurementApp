@@ -18,9 +18,29 @@ namespace QuantityMeasurementApp.Console.Controller
             return _service.Compare(first, second);
         }
 
-        public QuantityModel AddQuantities(QuantityDTO first, QuantityDTO second)
+        public QuantityDTO AddQuantities(QuantityDTO first, QuantityDTO second)
         {
             return _service.Add(first, second);
+        }
+
+        public QuantityDTO SubtractQuantities(QuantityDTO first, QuantityDTO second)
+        {
+            return _service.Subtract(first, second);
+        }
+
+        public QuantityDTO MultiplyQuantity(QuantityDTO quantity, double factor)
+        {
+            return _service.Multiply(quantity, factor);
+        }
+
+        public QuantityDTO DivideQuantity(QuantityDTO quantity, double divisor)
+        {
+            return _service.Divide(quantity, divisor);
+        }
+
+        public QuantityDTO ConvertQuantity(QuantityDTO quantity, string targetUnit)
+        {
+            return _service.Convert(quantity, targetUnit);
         }
 
         public List<QuantityMeasurementEntity> GetAllHistory()
