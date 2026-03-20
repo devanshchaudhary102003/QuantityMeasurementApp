@@ -4,29 +4,17 @@ using QuantityMeasurementApp.Services;
 
 namespace QuantityMeasurementApp.Tests
 {
-    /// <summary>
-    /// Unit tests for validating value-based equality behavior of Inches class.
-    /// Ensures compliance with equality contract and null/type safety.
-    /// </summary>
     [TestClass]
     public class InchesEqualityTests
     {
-        public InchesServices service;
+        public InchesService service;
 
-        /// <summary>
-        /// Initializes required dependencies before each test execution.
-        /// </summary>
         [TestInitialize]
         public void SetUp()
         {
-            service = new InchesServices();
+            service = new InchesService();
         }
 
-        /// <summary>
-        /// GIVEN two Inches objects with identical values
-        /// WHEN compared
-        /// THEN result should be true.
-        /// </summary>
         [TestMethod]
         public void GivenSameInchesValue()
         {
@@ -41,11 +29,6 @@ namespace QuantityMeasurementApp.Tests
             Assert.AreEqual(true,result);
         }
         
-         /// <summary>
-        /// GIVEN two Inches objects with different values
-        /// WHEN compared
-        /// THEN result should be false.
-        /// </summary>
         [TestMethod]
         public void GivenDifferentInchesValue()
         {
@@ -60,11 +43,6 @@ namespace QuantityMeasurementApp.Tests
             Assert.AreEqual(false,result);
         }
 
-        /// <summary>
-        /// GIVEN a valid Inches object and null
-        /// WHEN compared
-        /// THEN result should be false.
-        /// </summary>
         [TestMethod]
         public void GivenNullInches()
         {
@@ -78,11 +56,6 @@ namespace QuantityMeasurementApp.Tests
             Assert.AreEqual(false,result);
         }
 
-        /// <summary>
-        /// GIVEN the same Inches reference
-        /// WHEN compared
-        /// THEN result should be true (Reflexive property).
-        /// </summary>
         [TestMethod]
         public void GivenSameInchesReference()
         {
@@ -96,11 +69,6 @@ namespace QuantityMeasurementApp.Tests
             Assert.AreEqual(true,result);
         }
 
-        /// <summary>
-        /// GIVEN an Inches object and a different object type
-        /// WHEN Equals is invoked
-        /// THEN result should be false.
-        /// </summary>
         [TestMethod]
         public void GivenDifferentTypeOfInches()
         {
