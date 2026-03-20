@@ -6,7 +6,7 @@ using QuantityMeasurementApp.Services;
 namespace QuantityMeasurementApp.Tests
 {
     [TestClass]
-    public class QuantityLengthTests2
+    public class QuantityLengthTestsTwo
     {
         [TestMethod]
         public void testEquality_YardToYard_SameValue()

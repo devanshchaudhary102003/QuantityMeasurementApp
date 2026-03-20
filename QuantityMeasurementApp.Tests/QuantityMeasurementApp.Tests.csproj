@@ -12,11 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+    <ProjectReference Include="..\QuantityMeasurementApp\QuantityMeasurementApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QuantityMeasurementApp\QuantityMeasurementApp.csproj" />
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
   </ItemGroup>
 
 </Project>
