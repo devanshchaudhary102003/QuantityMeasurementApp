@@ -26,41 +26,48 @@ namespace QuantityMeasurementApp.Models
 
         public double ConvertToFeet()
         {
-            return Value * Unit.ToFeetFactor();
+            return Unit.ConvertToBaseUnit(Value);
         }
         
         // =====================================================
         // UC5: Static Conversion API
         // =====================================================
 
-        public static double Convert(double value,LengthUnit sourceUnit, LengthUnit targetUnit)
+        public static double Convert(double value, LengthUnit sourceUnit, LengthUnit targetUnit)
         {
-            double sourceFactor = sourceUnit.ToFeetFactor();
-            double targetFactor = targetUnit.ToFeetFactor();
-
-            double valueInFeet = value * sourceFactor;
-            return valueInFeet / targetFactor;
+            double baseValue = sourceUnit.ConvertToBaseUnit(value);
+            return targetUnit.ConvertFromBaseUnit(baseValue);
         }
         
         // =====================================================
         // UC5: Instance Conversion
         // =====================================================
 
-        public QuantityLength ConvertTo(LengthUnit targetUnit)
+        public static QuantityLength Add(QuantityLength first, QuantityLength second)
         {
-            double convertedValue = Convert(this.Value, this.Unit, targetUnit);
-            return new QuantityLength(convertedValue,targetUnit);
+            double firstBase = first.Unit.ConvertToBaseUnit(first.Value);
+            double secondBase = second.Unit.ConvertToBaseUnit(second.Value);
+
+            double sumBase = firstBase + secondBase;
+            double result = first.Unit.ConvertFromBaseUnit(sumBase);
+
+            return new QuantityLength(result, first.Unit);
         }
 
         // =========================
         // UC6: Addition (Result in first operand unit)
         // =========================
-        public static QuantityLength Add(QuantityLength first , QuantityLength second)
+        public static QuantityLength Add(double firstValue, LengthUnit firstUnit, double secondValue, LengthUnit secondUnit)
         {
-            double secondInFirstUnit = Convert(second.Value, second.Unit, first.Unit);
-            double sum = first.Value + secondInFirstUnit;
+            var first = new QuantityLength(firstValue, firstUnit);
+            var second = new QuantityLength(secondValue, secondUnit);
 
-            return new QuantityLength(sum,first.Unit);
+            return Add(first, second);
+        }
+
+        public QuantityLength Add(QuantityLength other)
+        {
+            return Add(this, other);
         }
 
         /// UC7:
@@ -71,21 +78,28 @@ namespace QuantityMeasurementApp.Models
 
         public static QuantityLength Add(QuantityLength first, QuantityLength second, LengthUnit targetUnit)
         {
-            double firstInFeet = first.Value * first.Unit.ToFeetFactor();
-            double secondInFeet = second.Value * second.Unit.ToFeetFactor();
+            double firstBase = first.Unit.ConvertToBaseUnit(first.Value);
+            double secondBase = second.Unit.ConvertToBaseUnit(second.Value);
 
-            double sumInFeet = firstInFeet + secondInFeet;
-            double result = sumInFeet / targetUnit.ToFeetFactor();
+            double sumBase = firstBase + secondBase;
+            double result = targetUnit.ConvertFromBaseUnit(sumBase);
 
-            return new QuantityLength(result,targetUnit);
+            return new QuantityLength(result, targetUnit);
         }
 
-        public static QuantityLength Add(double firstValue, LengthUnit firstUnit,double secondValue, LengthUnit secondUnit,LengthUnit targetUnit)
+        public static QuantityLength Add(double firstValue, LengthUnit firstUnit,
+                                         double secondValue, LengthUnit secondUnit,
+                                         LengthUnit targetUnit)
         {
             var first = new QuantityLength(firstValue, firstUnit);
             var second = new QuantityLength(secondValue, secondUnit);
 
             return Add(first, second, targetUnit);
+        }
+
+        public QuantityLength Add(QuantityLength other, LengthUnit targetUnit)
+        {
+            return Add(this, other, targetUnit);
         }
         public override bool Equals(object? obj)
         {
@@ -106,7 +120,7 @@ namespace QuantityMeasurementApp.Models
 
             QuantityLength other = (QuantityLength)obj;
 
-            return Math.Abs(this.ConvertToFeet() - other.ConvertToFeet()) < 0.0001;
+            return Math.Abs(this.Unit.ConvertToBaseUnit(this.Value) - other.Unit.ConvertToBaseUnit(other.Value)) < 0.0001;
         }
 
         public override int GetHashCode()
