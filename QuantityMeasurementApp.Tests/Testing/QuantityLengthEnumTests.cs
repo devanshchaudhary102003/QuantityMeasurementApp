@@ -5,7 +5,7 @@ using QuantityMeasurementApp.Models;
 namespace QuantityMeasurementApp.Tests
 {
     [TestClass]
-    public class QuantityLengthRefactorTests3
+    public class QuantityLengthEnumTests
     {
         private const double EPSILON = 1e-6;
 
