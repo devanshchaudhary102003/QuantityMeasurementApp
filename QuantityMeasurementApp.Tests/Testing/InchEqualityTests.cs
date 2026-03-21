@@ -4,75 +4,83 @@ using QuantityMeasurementApp.Services;
 
 namespace QuantityMeasurementApp.Tests
 {
-    /// <summary>
-    /// Unit tests for validating value-based equality behavior of Inches class.
-    /// Ensures compliance with equality contract and null/type safety.
-    /// </summary>
     [TestClass]
     public class InchesEqualityTests
     {
-        private InchesServices service = null!;
+        public InchesService service;
 
-        /// <summary>
-        /// Initializes required dependencies before each test execution.
-        /// </summary>
         [TestInitialize]
         public void SetUp()
         {
-            service = new InchesServices();
+            service = new InchesService();
         }
 
         [TestMethod]
         public void GivenSameInchesValue()
         {
+            //Arrange
             Inches SameValueInchesOne = new Inches(2.0);
             Inches SameValueInchesTwo = new Inches(2.0);
 
-            bool result = service.AreEqual(SameValueInchesOne, SameValueInchesTwo);
+            //Act
+            bool result = service.AreEqual(SameValueInchesOne,SameValueInchesTwo);
 
-            Assert.IsTrue(result);
+            //Assert
+            Assert.AreEqual(true,result);
         }
-
+        
         [TestMethod]
         public void GivenDifferentInchesValue()
         {
+            //Arrange
             Inches DifferentValueInchesOne = new Inches(2.0);
             Inches DifferentValueInchesTwo = new Inches(4.0);
 
-            bool result = service.AreEqual(DifferentValueInchesOne, DifferentValueInchesTwo);
+            //Act
+            bool result = service.AreEqual(DifferentValueInchesOne,DifferentValueInchesTwo);
 
-            Assert.IsFalse(result);
+            //Assert
+            Assert.AreEqual(false,result);
         }
 
         [TestMethod]
         public void GivenNullInches()
         {
+            //Arrange 
             Inches NullValueInches = new Inches(2.0);
 
-            bool result = service.AreEqual(NullValueInches, null);
+            //Act
+            bool result = service.AreEqual(NullValueInches,null);
 
-            Assert.IsFalse(result);
+            //Assert
+            Assert.AreEqual(false,result);
         }
 
         [TestMethod]
         public void GivenSameInchesReference()
         {
+            //Arrange
             Inches ReferenceInches = new Inches(2.0);
 
-            bool result = service.AreEqual(ReferenceInches, ReferenceInches);
+            //Act
+            bool result = service.AreEqual(ReferenceInches,ReferenceInches);
 
-            Assert.IsTrue(result);
+            //Assert
+            Assert.AreEqual(true,result);
         }
 
         [TestMethod]
         public void GivenDifferentTypeOfInches()
         {
+            //Arrange
             Inches DifferentTypeInches = new Inches(2.0);
             object obj = new object();
 
+            //Act
             bool result = DifferentTypeInches.Equals(obj);
 
-            Assert.IsFalse(result);
+            //Assert
+            Assert.AreEqual(false,result);
         }
     }
 }

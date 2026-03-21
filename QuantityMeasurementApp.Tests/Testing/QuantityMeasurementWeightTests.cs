@@ -98,68 +98,6 @@ namespace QuantityMeasurementApp.Tests
         }
 
         [TestMethod]
-        public void testConversion_PoundToKilogram()
-        {
-            var a = new QuantityWeight(2.20462, WeightUnit.Pound);
-            QuantityWeight result = a.ConvertTo(WeightUnit.Kilogram);
-
-            Assert.AreEqual(1.0, result.Value, 0.001);
-            Assert.AreEqual(WeightUnit.Kilogram, result.Unit);
-        }
-
-        [TestMethod]
-        public void testConversion_KilogramToPound()
-        {
-            var a = new QuantityWeight(1.0, WeightUnit.Kilogram);
-            QuantityWeight result = a.ConvertTo(WeightUnit.Pound);
-
-            Assert.AreEqual(2.20462, result.Value, 0.001);
-            Assert.AreEqual(WeightUnit.Pound, result.Unit);
-        }
-
-        [TestMethod]
-        public void testConversion_SameUnit()
-        {
-            var a = new QuantityWeight(5.0, WeightUnit.Kilogram);
-            QuantityWeight result = a.ConvertTo(WeightUnit.Kilogram);
-
-            Assert.AreEqual(5.0, result.Value, EPSILON);
-            Assert.AreEqual(WeightUnit.Kilogram, result.Unit);
-        }
-
-        [TestMethod]
-        public void testConversion_ZeroValue()
-        {
-            var a = new QuantityWeight(0.0, WeightUnit.Kilogram);
-            QuantityWeight result = a.ConvertTo(WeightUnit.Gram);
-
-            Assert.AreEqual(0.0, result.Value, EPSILON);
-            Assert.AreEqual(WeightUnit.Gram, result.Unit);
-        }
-
-        [TestMethod]
-        public void testConversion_NegativeValue()
-        {
-            var a = new QuantityWeight(-1.0, WeightUnit.Kilogram);
-            QuantityWeight result = a.ConvertTo(WeightUnit.Gram);
-
-            Assert.AreEqual(-1000.0, result.Value, EPSILON);
-            Assert.AreEqual(WeightUnit.Gram, result.Unit);
-        }
-
-        [TestMethod]
-        public void testConversion_RoundTrip()
-        {
-            var a = new QuantityWeight(1.5, WeightUnit.Kilogram);
-
-            QuantityWeight gram = a.ConvertTo(WeightUnit.Gram);
-            QuantityWeight kilogram = gram.ConvertTo(WeightUnit.Kilogram);
-
-            Assert.AreEqual(1.5, kilogram.Value, EPSILON);
-            Assert.AreEqual(WeightUnit.Kilogram, kilogram.Unit);
-        }
-
-        [TestMethod]
         public void testAddition_SameUnit_KilogramPlusKilogram()
         {
             var a = new QuantityWeight(1.0, WeightUnit.Kilogram);

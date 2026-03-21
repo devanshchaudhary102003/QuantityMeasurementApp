@@ -6,7 +6,7 @@ using System;
 namespace QuantityMeasurementApp.Tests
 {
     [TestClass]
-    public class QuantityLengthAdditionTests2
+    public class QuantityLengthAdditionWithTargetUnitTests
     {
         private const double EPSILON = 1e-6;
 

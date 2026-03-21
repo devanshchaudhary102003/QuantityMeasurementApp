@@ -3,25 +3,15 @@ using QuantityMeasurementApp.Enums;
 
 namespace QuantityMeasurementApp.Models
 {
-    /// <summary>
-    /// Represents a unit-aware length quantity.
-    /// 
-    /// UC8 REFACTOR:
-    /// - Conversion responsibility delegated to LengthUnit
-    /// - QuantityLength focuses only on comparison and arithmetic
-    /// - Public API from UC1–UC7 remains preserved
-    /// </summary>
     public class QuantityLength
     {
-        private const double EPSILON = 0.0001;
-
         public double Value;
         public LengthUnit Unit;
 
-        public QuantityLength(double Value, LengthUnit Unit)
+        public QuantityLength(double value, LengthUnit unit)
         {
-            this.Value = Value;
-            this.Unit = Unit;
+            Value = value;
+            Unit = unit;
         }
 
         public double GetValue()
@@ -34,39 +24,25 @@ namespace QuantityMeasurementApp.Models
             return Unit;
         }
 
-        /// <summary>
-        /// Converts current quantity into base unit (Feet).
-        /// Delegates conversion responsibility to unit.
-        /// </summary>
         public double ConvertToFeet()
         {
             return Unit.ConvertToBaseUnit(Value);
         }
+        
+        // =====================================================
+        // UC5: Static Conversion API
+        // =====================================================
 
-        /// <summary>
-        /// UC5:
-        /// Converts raw numeric value from source unit to target unit.
-        /// </summary>
         public static double Convert(double value, LengthUnit sourceUnit, LengthUnit targetUnit)
         {
             double baseValue = sourceUnit.ConvertToBaseUnit(value);
             return targetUnit.ConvertFromBaseUnit(baseValue);
         }
+        
+        // =====================================================
+        // UC5: Instance Conversion
+        // =====================================================
 
-        /// <summary>
-        /// UC5:
-        /// Converts current quantity into target unit.
-        /// </summary>
-        public QuantityLength ConvertTo(LengthUnit targetUnit)
-        {
-            double convertedValue = Convert(this.Value, this.Unit, targetUnit);
-            return new QuantityLength(convertedValue, targetUnit);
-        }
-
-        /// <summary>
-        /// UC6:
-        /// Adds two quantities and returns result in first operand unit.
-        /// </summary>
         public static QuantityLength Add(QuantityLength first, QuantityLength second)
         {
             double firstBase = first.Unit.ConvertToBaseUnit(first.Value);
@@ -78,9 +54,9 @@ namespace QuantityMeasurementApp.Models
             return new QuantityLength(result, first.Unit);
         }
 
-        /// <summary>
-        /// UC6 overload using raw values.
-        /// </summary>
+        // =========================
+        // UC6: Addition (Result in first operand unit)
+        // =========================
         public static QuantityLength Add(double firstValue, LengthUnit firstUnit, double secondValue, LengthUnit secondUnit)
         {
             var first = new QuantityLength(firstValue, firstUnit);
@@ -89,18 +65,17 @@ namespace QuantityMeasurementApp.Models
             return Add(first, second);
         }
 
-        /// <summary>
-        /// UC6 instance method.
-        /// </summary>
         public QuantityLength Add(QuantityLength other)
         {
             return Add(this, other);
         }
 
-        /// <summary>
         /// UC7:
-        /// Adds two quantities and returns result in explicit target unit.
-        /// </summary>
+        /// Adds two QuantityLength values and returns the result
+        /// in the explicitly specified target unit.
+        /// Example:
+        /// (1 Feet) + (12 Inch), target = Yard => Quantity(0.666..., Yard)
+
         public static QuantityLength Add(QuantityLength first, QuantityLength second, LengthUnit targetUnit)
         {
             double firstBase = first.Unit.ConvertToBaseUnit(first.Value);
@@ -112,9 +87,6 @@ namespace QuantityMeasurementApp.Models
             return new QuantityLength(result, targetUnit);
         }
 
-        /// <summary>
-        /// UC7 overload using raw values.
-        /// </summary>
         public static QuantityLength Add(double firstValue, LengthUnit firstUnit,
                                          double secondValue, LengthUnit secondUnit,
                                          LengthUnit targetUnit)
@@ -125,39 +97,35 @@ namespace QuantityMeasurementApp.Models
             return Add(first, second, targetUnit);
         }
 
-        /// <summary>
-        /// UC7 instance method.
-        /// </summary>
         public QuantityLength Add(QuantityLength other, LengthUnit targetUnit)
         {
             return Add(this, other, targetUnit);
         }
-
         public override bool Equals(object? obj)
         {
             if (ReferenceEquals(this, obj))
+            {
                 return true;
+            }
 
-            if (obj is null)
+            if(obj is null)
+            {
                 return false;
+            }
 
-            if (obj is not QuantityLength other)
+            if(obj.GetType() != typeof(QuantityLength))
+            {
                 return false;
+            }
 
-            double firstValue = this.Unit.ConvertToBaseUnit(this.Value);
-            double secondValue = other.Unit.ConvertToBaseUnit(other.Value);
+            QuantityLength other = (QuantityLength)obj;
 
-            return Math.Abs(firstValue - secondValue) < EPSILON;
+            return Math.Abs(this.Unit.ConvertToBaseUnit(this.Value) - other.Unit.ConvertToBaseUnit(other.Value)) < 0.0001;
         }
 
         public override int GetHashCode()
         {
-            return Math.Round(Unit.ConvertToBaseUnit(Value), 4).GetHashCode();
-        }
-
-        public override string ToString()
-        {
-            return $"Quantity({Value}, {Unit})";
+            return ConvertToFeet().GetHashCode();
         }
     }
 }
