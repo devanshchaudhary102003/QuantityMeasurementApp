@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "rBCjNEjLoZM=",
+  "dgSpecHash": "4y4E9DgMwrw=",
   "success": true,
-  "projectFilePath": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementApp.Tests\\QuantityMeasurementApp.Tests.csproj",
+  "projectFilePath": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApps\\QuantityMeasurementApp.Tests\\QuantityMeasurementApp.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\DELL\\.nuget\\packages\\microsoft.applicationinsights\\2.23.0\\microsoft.applicationinsights.2.23.0.nupkg.sha512",
     "C:\\Users\\DELL\\.nuget\\packages\\microsoft.codecoverage\\18.0.0\\microsoft.codecoverage.18.0.0.nupkg.sha512",
