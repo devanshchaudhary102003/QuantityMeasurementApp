@@ -1,0 +1,11 @@
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\bin\Debug\net10.0\QuantityMeasurementAppModelLayer.deps.json
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\bin\Debug\net10.0\QuantityMeasurementAppModelLayer.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\bin\Debug\net10.0\QuantityMeasurementAppModelLayer.pdb
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\QuantityMeasurementAppModelLayer.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\QuantityMeasurementAppModelLayer.AssemblyInfoInputs.cache
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\QuantityMeasurementAppModelLayer.AssemblyInfo.cs
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\QuantityMeasurementAppModelLayer.csproj.CoreCompileInputs.cache
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\QuantityMeasurementAppModelLayer.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\refint\QuantityMeasurementAppModelLayer.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\QuantityMeasurementAppModelLayer.pdb
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementAppModelLayer\obj\Debug\net10.0\ref\QuantityMeasurementAppModelLayer.dll
