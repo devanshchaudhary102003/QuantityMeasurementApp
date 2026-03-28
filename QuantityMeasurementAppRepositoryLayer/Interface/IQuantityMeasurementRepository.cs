@@ -1,4 +1,4 @@
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 
 namespace QuantityMeasurementAppRepositoryLayer.Interface
 {

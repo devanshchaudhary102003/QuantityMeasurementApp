@@ -4,7 +4,7 @@ using QuantityMeasurementAppModelLayer.DTOs;
 using QuantityMeasurementAppBusinessLayer.Exception;
 using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 using BCrypt.Net;
 namespace QuantityMeasurementAppBusinessLayer.Service
 {

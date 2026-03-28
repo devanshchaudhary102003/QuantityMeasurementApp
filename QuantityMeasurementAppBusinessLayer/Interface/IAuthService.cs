@@ -1,5 +1,5 @@
 using QuantityMeasurementAppModelLayer.DTOs;
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 
 namespace QuantityMeasurementAppBusinessLayer.Interface
 {

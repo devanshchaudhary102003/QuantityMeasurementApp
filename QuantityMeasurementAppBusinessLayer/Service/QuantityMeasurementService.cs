@@ -2,7 +2,7 @@ using QuantityMeasurementAppBusinessLayer.Exception;
 using QuantityMeasurementAppBusinessLayer.Interface;
 using QuantityMeasurementAppModelLayer.DTOs;
 using QuantityMeasurementAppModelLayer.Enums;
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
 using Azure.Core.Diagnostics;

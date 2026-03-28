@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace QuantityMeasurementAppModelLayer.Models
+namespace QuantityMeasurementAppModelLayer.Entity
 {
     [Table("Quantity")]
     public class QuantityMeasurementEntity

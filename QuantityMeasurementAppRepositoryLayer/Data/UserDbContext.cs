@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 
 namespace QuantityMeasurementAppRepositoryLayer.Data
 {

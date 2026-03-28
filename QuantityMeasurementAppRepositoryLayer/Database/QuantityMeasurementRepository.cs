@@ -1,6 +1,6 @@
 using System.Configuration.Assemblies;
 using Microsoft.Data.SqlClient;
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 using QuantityMeasurementAppRepositoryLayer.Data;
 using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Utils;

@@ -4,7 +4,7 @@ using QuantityMeasurementAppModelLayer.DTOs;
 using QuantityMeasurementAppBusinessLayer.Service;
 using QuantityMeasurementAppBusinessLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
-using QuantityMeasurementAppModelLayer.Models;
+using QuantityMeasurementAppModelLayer.Entity;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
