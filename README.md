@@ -1115,3 +1115,780 @@ By extracting `LengthUnit` as a standalone enum with full conversion responsibil
 This marks a foundational step toward building a **complete, enterprise-grade measurement system** supporting multiple unit categories with clean, decoupled architecture.
 
 ---
+
+## 📅 Date: 16 March 2026
+# Quantity Measurement App – UC9: Weight Measurement Equality, Conversion, and Addition (Kilogram, Gram, Pound)
+## Overview
+UC9 extends the Quantity Measurement Application to support **weight measurements** alongside length measurements.  
+It introduces a new measurement category — weight — that operates **independently from length**, supporting equality comparison, unit conversion, and addition across kilograms, grams, and pounds.
+
+---
+## Objective
+To:
+- Introduce `WeightUnit` enum as a standalone class with conversion responsibility  
+- Implement `QuantityWeight` class mirroring the `QuantityLength` design  
+- Support equality, conversion, and addition for weight measurements  
+- Enforce category type safety (weight ≠ length)  
+- Validate that the UC1–UC8 design pattern scales seamlessly to new measurement categories  
+
+---
+## Features
+- Equality comparison between weight measurements across all unit combinations  
+- Unit conversion between Kilogram, Gram, and Pound  
+- Addition with implicit target unit (first operand's unit) and explicit target unit  
+- Category type safety — weight and length measurements are non-interoperable  
+- Full backward compatibility with UC1–UC8 length functionality  
+- Immutable `QuantityWeight` objects (value and unit are final)  
+
+---
+## Project Structure
+- `WeightUnit` – Standalone enum with conversion factors and conversion methods  
+- `QuantityWeight` – Class focused on weight comparison, conversion, and arithmetic  
+- `QuantityMeasurementApp` – Demo methods extended for weight operations  
+
+---
+## Working Flow
+1. Two `QuantityWeight` objects with their respective units are provided  
+2. Input validation is performed (non-null unit, finite value)  
+3. Both values are converted to the **base unit (kilogram)** using `WeightUnit` conversion methods  
+4. Equality comparison, conversion, or addition is performed  
+5. Result is converted to the **target unit** (implicit or explicit)  
+6. A new immutable `QuantityWeight` object is returned  
+
+---
+## Conversion Logic
+
+
+| Unit       | Conversion Factor (to kg) |
+|------------|---------------------------|
+| KILOGRAM   | 1.0                       |
+| GRAM       | 0.001                     |
+| POUND      | 0.453592                  |
+
+---
+## Example
+
+**Equality:**  
+`Quantity(1.0, KILOGRAM).equals(Quantity(1000.0, GRAM))`  
+→ `true`
+
+`Quantity(1.0, KILOGRAM).equals(Quantity(~2.20462, POUND))`  
+→ `true` (within epsilon)
+
+`Quantity(500.0, GRAM).equals(Quantity(0.5, KILOGRAM))`  
+→ `true`
+
+**Conversion:**  
+`Quantity(1.0, KILOGRAM).convertTo(GRAM)`  
+→ `Quantity(1000.0, GRAM)`
+
+`Quantity(2.0, POUND).convertTo(KILOGRAM)`  
+→ `Quantity(~0.907184, KILOGRAM)`
+
+`Quantity(500.0, GRAM).convertTo(POUND)`  
+→ `Quantity(~1.10231, POUND)`
+
+**Addition (Implicit Target Unit):**  
+`Quantity(1.0, KILOGRAM).add(Quantity(1000.0, GRAM))`  
+→ `Quantity(2.0, KILOGRAM)`
+
+**Addition (Explicit Target Unit):**  
+`Quantity(1.0, KILOGRAM).add(Quantity(1000.0, GRAM), GRAM)`  
+→ `Quantity(2000.0, GRAM)`
+
+`Quantity(2.0, KILOGRAM).add(Quantity(4.0, POUND), KILOGRAM)`  
+→ `Quantity(~3.82, KILOGRAM)`
+
+**Category Incompatibility:**  
+`Quantity(1.0, KILOGRAM).equals(Quantity(1.0, FOOT))`  
+→ `false`
+
+---
+## Concepts Used
+### Multiple Measurement Categories
+- Weight operates independently from length  
+- Each category has its own unit enum and quantity class  
+- Categories are type-safe and non-interoperable  
+
+### Scalable Generic Design Pattern
+- `WeightUnit` and `QuantityWeight` mirror `LengthUnit` and `QuantityLength`  
+- Pattern is replicable for temperature, volume, time, and other categories  
+
+### Category Type Safety
+- `equals()` checks `getClass()` to reject cross-category comparisons  
+- Compile-time and runtime safety prevent logical errors  
+
+### Base Unit Normalization
+- Kilogram is the base unit for weight (mirrors feet for length)  
+- Centralized normalization through `WeightUnit` methods  
+
+### Enum-Based Responsibility Assignment
+- `WeightUnit` encapsulates conversion logic (following UC8 principles)  
+- `QuantityWeight` focuses on comparison and arithmetic only  
+
+### Immutability
+- `QuantityWeight` objects are immutable — operations return new instances  
+- Thread-safe across concurrent callers  
+
+### Method Overloading
+- `add(a, b)` → result in first operand's unit (UC6-equivalent)  
+- `add(a, b, targetUnit)` → result in specified unit (UC7-equivalent)  
+
+### Equals and HashCode Contract
+- Both `equals()` and `hashCode()` are consistently overridden  
+- Enables use in sets, maps, and hash-based collections  
+
+### Floating-Point Precision
+- Epsilon-based tolerance accommodates floating-point rounding  
+- Consistent rounding (two decimal places) ensures predictability  
+
+---
+## Implementation Steps
+
+### Step 1 – Create WeightUnit Standalone Enum
+- Define constants: `KILOGRAM`, `GRAM`, `POUND`  
+- Assign conversion factors relative to kilogram  
+- Implement `getConversionFactor()`, `convertToBaseUnit()`, `convertFromBaseUnit()`  
+
+### Step 2 – Implement QuantityWeight Class
+- Mirror `QuantityLength` design with `WeightUnit` enum  
+- Validate unit (not null) and value (finite number) in constructor  
+- Implement `equals()`, `convertTo()`, overloaded `add()`, and `toString()`  
+
+### Step 3 – Enforce Category Type Safety
+- `equals()` returns `false` for cross-category comparisons  
+- Document that weight and length are incompatible categories  
+
+### Step 4 – Ensure Conversion Accuracy
+- Verify: `1 kg = 1000 g`, `1 lb ≈ 0.453592 kg`, `1 kg ≈ 2.20462 lb`  
+- Test round-trip conversions within epsilon (`1e-6`)  
+
+### Step 5 – Verify Test Coverage
+- Equality: same unit, cross-unit, incompatible category, null, edge cases  
+- Conversion: all unit pairs, zero, negative, round-trip  
+- Addition: same unit, cross-unit, explicit target unit, commutativity, edge cases  
+
+---
+## Test Scenarios
+### Equality Tests
+- Kilogram-to-kilogram same value → `true`  
+- Kilogram-to-gram equivalent value → `true`  
+- Kilogram-to-pound equivalent value → `true` (within epsilon)  
+- Gram-to-pound equivalent value → `true`  
+- Different values in same unit → `false`  
+- Weight vs. length comparison → `false`  
+- Null comparison → `false`  
+- Same reference → `true`  
+- Zero values across units → `true`  
+- Negative values across units → `true`  
+
+### Conversion Tests
+- Kilogram → Gram, Gram → Kilogram  
+- Pound → Kilogram, Kilogram → Pound  
+- Gram → Pound, Pound → Gram  
+- Same unit conversion (no change)  
+- Zero and negative value conversions  
+- Round-trip conversion within epsilon  
+
+### Addition Tests
+- Same unit addition (kg + kg)  
+- Cross-unit addition (kg + g, lb + kg)  
+- Explicit target unit (result in any unit)  
+- Commutativity with target unit  
+- Addition with zero  
+- Addition with negative values  
+- Addition with large magnitude values  
+
+### Edge Cases
+- Null unit → `IllegalArgumentException`  
+- `Double.NaN` value → `IllegalArgumentException`  
+- Infinite value → `IllegalArgumentException`  
+
+---
+## Sample Test Cases
+- `testEquality_KilogramToKilogram_SameValue()`  
+- `testEquality_KilogramToKilogram_DifferentValue()`  
+- `testEquality_KilogramToGram_EquivalentValue()`  
+- `testEquality_GramToKilogram_EquivalentValue()`  
+- `testEquality_KilogramToPound_EquivalentValue()`  
+- `testEquality_GramToPound_EquivalentValue()`  
+- `testEquality_WeightVsLength_Incompatible()`  
+- `testEquality_NullComparison()`  
+- `testEquality_SameReference()`  
+- `testEquality_NullUnit()`  
+- `testEquality_TransitiveProperty()`  
+- `testEquality_ZeroValue()`  
+- `testEquality_NegativeWeight()`  
+- `testEquality_LargeWeightValue()`  
+- `testEquality_SmallWeightValue()`  
+- `testConversion_KilogramToGram()`  
+- `testConversion_GramToKilogram()`  
+- `testConversion_PoundToKilogram()`  
+- `testConversion_KilogramToPound()`  
+- `testConversion_GramToPound()`  
+- `testConversion_SameUnit()`  
+- `testConversion_ZeroValue()`  
+- `testConversion_NegativeValue()`  
+- `testConversion_RoundTrip()`  
+- `testAddition_SameUnit_KilogramPlusKilogram()`  
+- `testAddition_CrossUnit_KilogramPlusGram()`  
+- `testAddition_CrossUnit_PoundPlusKilogram()`  
+- `testAddition_ExplicitTargetUnit_Kilogram()`  
+- `testAddition_ExplicitTargetUnit_Gram()`  
+- `testAddition_Commutativity()`  
+- `testAddition_WithZero()`  
+- `testAddition_NegativeValues()`  
+- `testAddition_LargeValues()`  
+
+---
+## Conclusion
+UC9 validates that the **generic design patterns established in UC1–UC8 scale seamlessly** to new measurement categories.  
+By introducing weight measurements with no changes to existing length classes, the system demonstrates:
+- Clean **category independence** — weight and length coexist without interference  
+- True **architectural scalability** — adding a new category requires only a new enum and quantity class  
+- Consistent **API design** — weight operations mirror length operations exactly  
+- Robust **type safety** — cross-category comparisons are rejected at runtime  
+
+This marks a significant step toward a **complete, enterprise-grade measurement system** supporting multiple unit categories with clean, decoupled, and maintainable architecture.
+
+---
+## 📅 Date: 18 March 2026
+# Quantity Measurement App – UC10: Generic Quantity Class with Unit Interface for Multi-Category Support
+## Overview
+UC10 refactors the design from UC1–UC9 by introducing a **single generic `Quantity<U>` class** that works across all measurement categories through a common `IMeasurable` interface.  
+This eliminates code duplication across parallel `QuantityLength` and `QuantityWeight` classes, restores the **Single Responsibility Principle**, and establishes a **linearly scalable architecture** for future measurement categories.
+
+---
+## Objective
+To:
+- Define an `IMeasurable` interface as a contract for all unit enums  
+- Refactor `LengthUnit` and `WeightUnit` to implement `IMeasurable`  
+- Replace `QuantityLength` and `QuantityWeight` with a single generic `Quantity<U extends IMeasurable>` class  
+- Simplify `QuantityMeasurementApp` to use generic demonstration methods  
+- Uphold DRY and SRP principles across the entire system  
+- Maintain full backward compatibility with UC1–UC9  
+
+---
+## Features
+- Single `Quantity<U>` class handles all measurement categories  
+- `IMeasurable` interface standardizes unit behavior across all enums  
+- Compiler-enforced type safety via bounded generics (`<U extends IMeasurable>`)  
+- Cross-category comparison prevention at both compile-time and runtime  
+- Generic demonstration methods in `QuantityMeasurementApp` — no category-specific duplication  
+- New measurement categories require only a new enum implementing `IMeasurable`  
+- All UC1–UC9 functionality preserved — no client code changes required  
+
+---
+## Project Structure
+- `IMeasurable` – Interface defining the unit conversion contract  
+- `LengthUnit` – Refactored to implement `IMeasurable`  
+- `WeightUnit` – Refactored to implement `IMeasurable`  
+- `Quantity<U>` – Single generic class replacing `QuantityLength` and `QuantityWeight`  
+- `QuantityMeasurementApp` – Simplified with generic demonstration methods  
+
+---
+## Working Flow
+1. `IMeasurable` interface defined with `getConversionFactor()`, `convertToBaseUnit()`, `convertFromBaseUnit()`, `getUnitName()`  
+2. `LengthUnit` and `WeightUnit` implement `IMeasurable` — no external API changes  
+3. `Quantity<U>` is instantiated with any `IMeasurable` unit  
+4. Constructor validates unit (non-null) and value (finite)  
+5. Operations (`equals`, `convertTo`, `add`) delegate to unit's `IMeasurable` methods  
+6. `equals()` checks `unit.getClass()` to reject cross-category comparisons  
+7. A new immutable `Quantity<U>` is returned for all operations  
+
+---
+## Conversion Logic
+```
+
+| Category | Base Unit  | Units Supported                        |
+|----------|------------|----------------------------------------|
+| Length   | FEET       | FEET, INCHES, YARDS, CENTIMETERS       |
+| Weight   | KILOGRAM   | KILOGRAM, GRAM, POUND                  |
+
+---
+## Example
+**Length (UC1–UC8 preserved):**  
+`new Quantity<>(1.0, LengthUnit.FEET).equals(new Quantity<>(12.0, LengthUnit.INCHES))`  
+→ `true`
+
+`new Quantity<>(1.0, LengthUnit.FEET).convertTo(LengthUnit.INCHES)`  
+→ `Quantity(12.0, INCHES)`
+
+`new Quantity<>(1.0, LengthUnit.FEET).add(new Quantity<>(12.0, LengthUnit.INCHES), LengthUnit.FEET)`  
+→ `Quantity(2.0, FEET)`
+
+**Weight (UC9 preserved):**  
+`new Quantity<>(1.0, WeightUnit.KILOGRAM).equals(new Quantity<>(1000.0, WeightUnit.GRAM))`  
+→ `true`
+
+`new Quantity<>(1.0, WeightUnit.KILOGRAM).convertTo(WeightUnit.GRAM)`  
+→ `Quantity(1000.0, GRAM)`
+
+`new Quantity<>(1.0, WeightUnit.KILOGRAM).add(new Quantity<>(1000.0, WeightUnit.GRAM), WeightUnit.KILOGRAM)`  
+→ `Quantity(2.0, KILOGRAM)`
+
+**Cross-Category Prevention:**  
+`new Quantity<>(1.0, LengthUnit.FEET).equals(new Quantity<>(1.0, WeightUnit.KILOGRAM))`  
+→ `false`
+
+`demonstrateEquality(Quantity<LengthUnit>, Quantity<WeightUnit>)`  
+→ Compiler error (type mismatch)
+
+---
+## Disadvantages of UC9 Addressed
+
+| UC9 Problem | UC10 Solution |
+|-------------|---------------|
+| Duplicate `QuantityLength` / `QuantityWeight` classes | Single `Quantity<U>` class |
+| Duplicate unit enum structures | `IMeasurable` interface eliminates redundancy |
+| `QuantityMeasurementApp` SRP violation | Generic methods replace category-specific ones |
+| Exponential code growth per new category | Linear growth — new enum only |
+| Inconsistency risk across categories | Single source of truth for all operations |
+| Limited API flexibility | `Quantity<?>` wildcards enable polymorphic methods |
+
+---
+## Concepts Used
+### Generic Programming
+- Bounded type parameters (`<U extends IMeasurable>`) enforce constraints at compile-time  
+- Generics eliminate code duplication while maintaining full type safety  
+
+### Interface-Based Design
+- `IMeasurable` defines a contract for all measurement units  
+- Enums implementing interfaces encapsulate behavior within constants  
+- Enables polymorphic treatment of different unit types  
+
+### Single Responsibility Principle (SRP)
+- `IMeasurable` — defines unit abstraction contract  
+- `Quantity<U>` — handles value operations (equals, add, convert)  
+- Unit enums — provide unit-specific constants and conversion factors  
+- `QuantityMeasurementApp` — orchestration and demonstration only  
+
+### DRY Principle
+- Logic implemented once in `Quantity<U>`, reused across all categories  
+- Bug fixes automatically benefit all measurement types  
+
+### Open-Closed Principle (OCP)
+- System is open for extension (new unit enums) but closed for modification  
+- New categories added without changing `Quantity<U>` or `QuantityMeasurementApp`  
+
+### Liskov Substitution Principle (LSP)
+- Any `IMeasurable` implementation works interchangeably with `Quantity<U>`  
+- No special handling required for different unit types  
+
+### Composition Over Inheritance
+- `Quantity<U>` holds a `U` (composition) rather than extending category-specific classes  
+- More flexible than inheritance-based designs  
+
+### Cross-Category Type Safety
+- `equals()` checks `unit.getClass()` for runtime category matching  
+- Compiler enforces category constraints through generics  
+
+### Immutability
+- `Quantity<U>` objects are immutable — all operations return new instances  
+- Thread-safe across concurrent callers  
+
+### Enum as Behavior Carrier
+- Enums implement `IMeasurable`, carrying both data and behavior  
+- Immutable and thread-safe by nature  
+
+---
+## Implementation Steps
+
+### Step 1 – Define IMeasurable Interface
+- Methods: `getConversionFactor()`, `convertToBaseUnit()`, `convertFromBaseUnit()`, `getUnitName()`  
+- Minimal, focused contract — no unnecessary methods  
+
+### Step 2 – Refactor LengthUnit
+- Add `implements IMeasurable`  
+- Implement all interface methods using existing conversion logic  
+- No external API changes — fully backward compatible  
+
+### Step 3 – Refactor WeightUnit
+- Identical structure to refactored `LengthUnit`  
+- Consistent implementation across enums supports polymorphism  
+
+### Step 4 – Create Generic Quantity Class
+- Replace `QuantityLength` and `QuantityWeight` with `Quantity<U extends IMeasurable>`  
+- Implement `equals()`, `convertTo()`, overloaded `add()`, `hashCode()`, `toString()`  
+- `equals()` includes `unit.getClass()` check for cross-category prevention  
+
+### Step 5 – Simplify QuantityMeasurementApp
+- Replace category-specific methods with single generic `demonstrateEquality()`, `demonstrateConversion()`, `demonstrateAddition()`  
+- Reduce class to orchestration responsibilities only  
+
+### Step 6 – Update Test Classes
+- Rename to `QuantityTest` (replaces `QuantityLengthTest` and `QuantityWeightTest`)  
+- Use parameterized tests or separate test classes per category  
+- All test logic remains identical — only type parameters change  
+
+### Step 7 – Verify Backward Compatibility
+- Run all UC1–UC9 test cases unchanged  
+- Confirm behavior is identical to previous implementation  
+
+---
+## Test Scenarios
+### IMeasurable Interface Tests
+- `LengthUnit` correctly implements all interface methods  
+- `WeightUnit` correctly implements all interface methods  
+- Consistent method behavior across both enums  
+
+### Generic Quantity — Length Operations
+- Equality, conversion, and addition via `Quantity<LengthUnit>`  
+- Identical behavior to original `QuantityLength`  
+
+### Generic Quantity — Weight Operations
+- Equality, conversion, and addition via `Quantity<WeightUnit>`  
+- Identical behavior to original `QuantityWeight`  
+
+### Cross-Category Prevention
+- `equals()` returns `false` when categories differ  
+- Compiler rejects type mismatches at compile-time  
+
+### Constructor Validation
+- Null unit → `IllegalArgumentException`  
+- `Double.NaN` value → `IllegalArgumentException`  
+- Infinite value → `IllegalArgumentException`  
+
+### Simplified QuantityMeasurementApp
+- `demonstrateEquality()` handles both length and weight  
+- `demonstrateConversion()` handles both length and weight  
+- `demonstrateAddition()` handles both length and weight  
+
+### Scalability
+- New `VolumeUnit` enum integrates with `Quantity<VolumeUnit>` without any other changes  
+- No modifications to `Quantity<U>` or `QuantityMeasurementApp` required  
+
+### Backward Compatibility
+- All UC1–UC9 test cases pass without modification  
+
+---
+## Sample Test Cases
+- `testIMeasurableInterface_LengthUnitImplementation()`  
+- `testIMeasurableInterface_WeightUnitImplementation()`  
+- `testIMeasurableInterface_ConsistentBehavior()`  
+- `testGenericQuantity_LengthOperations_Equality()`  
+- `testGenericQuantity_WeightOperations_Equality()`  
+- `testGenericQuantity_LengthOperations_Conversion()`  
+- `testGenericQuantity_WeightOperations_Conversion()`  
+- `testGenericQuantity_LengthOperations_Addition()`  
+- `testGenericQuantity_WeightOperations_Addition()`  
+- `testCrossCategoryPrevention_LengthVsWeight()`  
+- `testCrossCategoryPrevention_CompilerTypeSafety()`  
+- `testGenericQuantity_ConstructorValidation_NullUnit()`  
+- `testGenericQuantity_ConstructorValidation_InvalidValue()`  
+- `testGenericQuantity_Conversion_AllUnitCombinations()`  
+- `testGenericQuantity_Addition_AllUnitCombinations()`  
+- `testBackwardCompatibility_AllUC1Through9Tests()`  
+- `testQuantityMeasurementApp_SimplifiedDemonstration_Equality()`  
+- `testQuantityMeasurementApp_SimplifiedDemonstration_Conversion()`  
+- `testQuantityMeasurementApp_SimplifiedDemonstration_Addition()`  
+- `testTypeWildcard_FlexibleSignatures()`  
+- `testScalability_NewUnitEnumIntegration()`  
+- `testScalability_MultipleNewCategories()`  
+- `testGenericBoundedTypeParameter_Enforcement()`  
+- `testHashCode_GenericQuantity_Consistency()`  
+- `testEquals_GenericQuantity_ContractPreservation()`  
+- `testEnumAsUnitCarrier_BehaviorEncapsulation()`  
+- `testTypeErasure_RuntimeSafety()`  
+- `testCompositionOverInheritance_Flexibility()`  
+- `testImmutability_GenericQuantity()`  
+- `testArchitecturalReadiness_MultipleNewCategories()`  
+
+---
+## Conclusion
+UC10 completes the architectural evolution of the Quantity Measurement Application by replacing category-specific duplication with a **single, type-safe generic design**.  
+By introducing the `IMeasurable` interface and the `Quantity<U>` class, the system achieves:
+- **Zero duplication** — one class handles all measurement categories  
+- **Linear scalability** — adding a new category requires only a new enum  
+- **Compile-time and runtime safety** — generics and class checks prevent invalid comparisons  
+- **Simplified maintenance** — bug fixes and improvements apply to all categories at once  
+- **Full backward compatibility** — all UC1–UC9 behavior is preserved identically  
+
+This marks the culmination of a **complete, enterprise-grade measurement system** — extensible, maintainable, type-safe, and built on proven software design principles.
+
+---
+## 📅 Date: 11 March 2026
+# Quantity Measurement App – UC11: Volume Measurement Equality, Conversion, and Addition (Litre, Millilitre, Gallon)
+## Overview
+UC11 extends the Quantity Measurement Application to support **volume measurements** alongside length and weight measurements.  
+It introduces a new measurement category — volume — that operates **independently from length and weight** through the generic `Quantity<U>` class and `IMeasurable` interface established in UC10.
+
+UC11 validates that the UC10 architecture **truly scales linearly** — adding a complete new measurement category requires only a single new enum, with **zero changes** to `Quantity<U>`, `IMeasurable`, or `QuantityMeasurementApp`.
+
+---
+## Objective
+To:
+- Create a `VolumeUnit` enum implementing `IMeasurable` with `LITRE` as the base unit  
+- Support equality comparison, unit conversion, and addition for volume measurements  
+- Enforce category type safety (volume ≠ length ≠ weight)  
+- Prove that the UC10 generic architecture scales seamlessly to a third measurement category  
+- Maintain full backward compatibility with UC1–UC10  
+
+---
+## Features
+- Equality comparison between volume measurements across all unit combinations  
+- Unit conversion between Litre, Millilitre, and Gallon  
+- Addition with implicit target unit (first operand's unit) and explicit target unit  
+- Category type safety — volume cannot be compared with length or weight  
+- **Zero modifications** to `Quantity<U>`, `IMeasurable`, or `QuantityMeasurementApp`  
+- Full backward compatibility with all UC1–UC10 functionality  
+
+---
+## Project Structure
+- `VolumeUnit` – New standalone enum implementing `IMeasurable` (only new file required)  
+- `Quantity<U>` – Unchanged; works with `VolumeUnit` automatically  
+- `IMeasurable` – Unchanged; already supports any unit enum  
+- `QuantityMeasurementApp` – Unchanged; generic methods handle volume automatically  
+
+---
+## Working Flow
+1. `VolumeUnit` enum is created implementing `IMeasurable`  
+2. Conversion factors defined relative to litre (base unit)  
+3. `Quantity<VolumeUnit>` instances created using the existing generic class  
+4. Input validation performed (non-null unit, finite value) by existing constructor  
+5. Both values converted to **base unit (litre)** using `VolumeUnit` conversion methods  
+6. Equality comparison, conversion, or addition performed by existing generic logic  
+7. Result converted to **target unit** (implicit or explicit)  
+8. New immutable `Quantity<VolumeUnit>` returned  
+
+---
+## ⚙️ Conversion Logic
+
+```
+
+| Unit        | Conversion Factor (to litres) |
+|-------------|-------------------------------|
+| LITRE       | 1.0                           |
+| MILLILITRE  | 0.001                         |
+| GALLON      | 3.78541                       |
+
+---
+## Example
+
+**Equality:**  
+`new Quantity<>(1.0, LITRE).equals(new Quantity<>(1000.0, MILLILITRE))`  
+→ `true`
+
+`new Quantity<>(1.0, LITRE).equals(new Quantity<>(~0.264172, GALLON))`  
+→ `true` (within epsilon)
+
+`new Quantity<>(3.78541, LITRE).equals(new Quantity<>(1.0, GALLON))`  
+→ `true` (within epsilon)
+
+**Conversion:**  
+`new Quantity<>(1.0, LITRE).convertTo(MILLILITRE)`  
+→ `Quantity(1000.0, MILLILITRE)`
+
+`new Quantity<>(2.0, GALLON).convertTo(LITRE)`  
+→ `Quantity(~7.57082, LITRE)`
+
+`new Quantity<>(500.0, MILLILITRE).convertTo(GALLON)`  
+→ `Quantity(~0.132086, GALLON)`
+
+**Addition (Implicit Target Unit):**  
+`new Quantity<>(1.0, LITRE).add(new Quantity<>(1000.0, MILLILITRE))`  
+→ `Quantity(2.0, LITRE)`
+
+`new Quantity<>(2.0, GALLON).add(new Quantity<>(3.78541, LITRE))`  
+→ `Quantity(3.0, GALLON)`
+
+**Addition (Explicit Target Unit):**  
+`new Quantity<>(1.0, LITRE).add(new Quantity<>(1000.0, MILLILITRE), MILLILITRE)`  
+→ `Quantity(2000.0, MILLILITRE)`
+
+`new Quantity<>(500.0, MILLILITRE).add(new Quantity<>(1.0, LITRE), GALLON)`  
+→ `Quantity(~0.396258, GALLON)`
+
+**Category Incompatibility:**  
+`new Quantity<>(1.0, LITRE).equals(new Quantity<>(1.0, FOOT))`  
+→ `false`
+
+`new Quantity<>(1.0, LITRE).equals(new Quantity<>(1.0, KILOGRAM))`  
+→ `false`
+
+---
+## Concepts Used
+### Scalability of Generic Design
+- Adding a third category requires **only a new enum** implementing `IMeasurable`  
+- Zero changes to `Quantity<U>`, demonstration methods, or test infrastructure  
+- Validates that UC10 architecture achieves true linear scalability  
+
+### Pattern Replication Across Categories
+- `VolumeUnit` mirrors the structure of `LengthUnit` and `WeightUnit`  
+- Identical enum patterns reduce cognitive load for new developers  
+
+### Base Unit Selection
+- Litre is chosen as the base unit for volume (mirrors feet for length, kilogram for weight)  
+- Base unit selection impacts conversion factor precision and formula simplicity  
+
+### IMeasurable Interface Power
+- Single interface enables polymorphic treatment of all measurement units  
+- Volume integrates transparently — no branching or special-case code  
+
+### Generic Type Constraints
+- Bounded type parameter `<U extends IMeasurable>` ensures only valid units are used  
+- Compiler prevents mixing `Quantity<VolumeUnit>` with `Quantity<LengthUnit>` or `Quantity<WeightUnit>`  
+
+### DRY Principle at Scale
+- Three categories now share one implementation — comparison, conversion, and addition logic written once  
+- Confirms DRY principle holds across an expanding number of categories  
+
+### Immutability Across All Categories
+- `Quantity<VolumeUnit>` objects are immutable — all operations return new instances  
+- Consistent with length and weight behavior  
+
+### Floating-Point Precision
+- Volume conversions require accuracy to multiple decimal places (e.g., 3.78541 for gallons)  
+- Epsilon-based tolerance handles floating-point rounding consistently  
+
+### Polymorphic Unit Behavior
+- `LengthUnit`, `WeightUnit`, and `VolumeUnit` treated uniformly through `IMeasurable`  
+- Generic demonstration methods in `QuantityMeasurementApp` work automatically  
+
+---
+## Implementation Steps
+
+### Step 1 – Create VolumeUnit Enum
+- Define constants: `LITRE`, `MILLILITRE`, `GALLON`  
+- Assign conversion factors relative to litre  
+- Implement `getConversionFactor()`, `convertToBaseUnit()`, `convertFromBaseUnit()`, `getUnitName()`  
+
+### Step 2 – Verify Conversion Factor Accuracy
+- `LITRE`: 1.0 (base unit)  
+- `MILLILITRE`: 0.001 (1 mL = 0.001 L)  
+- `GALLON`: 3.78541 (1 US gallon ≈ 3.78541 L)  
+
+### Step 3 – Create Quantity Instances
+- Use existing `Quantity<U>` class: `new Quantity<>(1.0, VolumeUnit.LITRE)`  
+- No new class creation required  
+
+### Step 4 – Test Equality Comparisons
+- Verify `equals()` works for same-unit, cross-unit, and cross-category comparisons  
+
+### Step 5 – Test Unit Conversions
+- Verify `convertTo()` works for all volume unit pairs  
+
+### Step 6 – Test Addition Operations
+- Verify `add()` works with implicit and explicit target unit specification  
+
+### Step 7 – Test Cross-Category Prevention
+- Confirm volume cannot be compared with length or weight measurements  
+
+### Step 8 – Comprehensive Test Coverage
+- Cover all equality, conversion, addition, edge case, and precision scenarios  
+
+### Step 9 – Integration Testing
+- Verify existing generic `demonstrateEquality()`, `demonstrateConversion()`, `demonstrateAddition()` work with volume without modification  
+
+### Step 10 – Backward Compatibility Validation
+- Run all UC1–UC10 test cases unchanged to confirm no regressions  
+
+---
+## Test Scenarios
+### Equality Tests
+- Litre-to-litre same value → `true`  
+- Litre-to-millilitre equivalent value → `true`  
+- Litre-to-gallon equivalent value → `true` (within epsilon)  
+- Gallon-to-litre equivalent value → `true` (symmetric)  
+- Millilitre-to-gallon equivalent value → `true`  
+- Different values in same unit → `false`  
+- Volume vs. length → `false`  
+- Volume vs. weight → `false`  
+- Null comparison → `false`  
+- Same reference → `true`  
+- Zero values across units → `true`  
+- Negative values across units → `true`  
+
+### Conversion Tests
+- Litre → Millilitre, Millilitre → Litre  
+- Gallon → Litre, Litre → Gallon  
+- Millilitre → Gallon, Gallon → Millilitre  
+- Same unit conversion (no change)  
+- Zero and negative value conversions  
+- Round-trip conversion within epsilon  
+
+### Addition Tests
+- Same unit addition (L + L, mL + mL)  
+- Cross-unit addition (L + mL, mL + L, gallon + L)  
+- Explicit target unit (result in any volume unit)  
+- Commutativity with target unit  
+- Addition with zero (identity element)  
+- Addition with negative values  
+- Addition with large and small magnitude values  
+
+### VolumeUnit Enum Tests
+- `LITRE.getConversionFactor()` → `1.0`  
+- `MILLILITRE.getConversionFactor()` → `0.001`  
+- `GALLON.getConversionFactor()` → `3.78541`  
+- `convertToBaseUnit()` and `convertFromBaseUnit()` for all constants  
+
+### Edge Cases
+- Null unit → `IllegalArgumentException`  
+- `Double.NaN` value → `IllegalArgumentException`  
+- Infinite value → `IllegalArgumentException`  
+
+---
+## Sample Test Cases
+- `testEquality_LitreToLitre_SameValue()`  
+- `testEquality_LitreToLitre_DifferentValue()`  
+- `testEquality_LitreToMillilitre_EquivalentValue()`  
+- `testEquality_MillilitreToLitre_EquivalentValue()`  
+- `testEquality_LitreToGallon_EquivalentValue()`  
+- `testEquality_GallonToLitre_EquivalentValue()`  
+- `testEquality_VolumeVsLength_Incompatible()`  
+- `testEquality_VolumeVsWeight_Incompatible()`  
+- `testEquality_NullComparison()`  
+- `testEquality_SameReference()`  
+- `testEquality_NullUnit()`  
+- `testEquality_TransitiveProperty()`  
+- `testEquality_ZeroValue()`  
+- `testEquality_NegativeVolume()`  
+- `testEquality_LargeVolumeValue()`  
+- `testEquality_SmallVolumeValue()`  
+- `testConversion_LitreToMillilitre()`  
+- `testConversion_MillilitreToLitre()`  
+- `testConversion_GallonToLitre()`  
+- `testConversion_LitreToGallon()`  
+- `testConversion_MillilitreToGallon()`  
+- `testConversion_SameUnit()`  
+- `testConversion_ZeroValue()`  
+- `testConversion_NegativeValue()`  
+- `testConversion_RoundTrip()`  
+- `testAddition_SameUnit_LitrePlusLitre()`  
+- `testAddition_SameUnit_MillilitrePlusMillilitre()`  
+- `testAddition_CrossUnit_LitrePlusMillilitre()`  
+- `testAddition_CrossUnit_MillilitrePlusLitre()`  
+- `testAddition_CrossUnit_GallonPlusLitre()`  
+- `testAddition_ExplicitTargetUnit_Litre()`  
+- `testAddition_ExplicitTargetUnit_Millilitre()`  
+- `testAddition_ExplicitTargetUnit_Gallon()`  
+- `testAddition_Commutativity()`  
+- `testAddition_WithZero()`  
+- `testAddition_NegativeValues()`  
+- `testAddition_LargeValues()`  
+- `testAddition_SmallValues()`  
+- `testVolumeUnitEnum_LitreConstant()`  
+- `testVolumeUnitEnum_MillilitreConstant()`  
+- `testVolumeUnitEnum_GallonConstant()`  
+- `testConvertToBaseUnit_LitreToLitre()`  
+- `testConvertToBaseUnit_MillilitreToLitre()`  
+- `testConvertToBaseUnit_GallonToLitre()`  
+- `testConvertFromBaseUnit_LitreToLitre()`  
+- `testConvertFromBaseUnit_LitreToMillilitre()`  
+- `testConvertFromBaseUnit_LitreToGallon()`  
+- `testBackwardCompatibility_AllUC1Through10Tests()`  
+- `testGenericQuantity_VolumeOperations_Consistency()`  
+- `testScalability_VolumeIntegration()`  
+
+---
+## Conclusion
+UC11 delivers the ultimate proof of the generic architecture established in UC10 — a **complete new measurement category integrated with a single enum file** and zero changes to the existing codebase.  
+By introducing volume measurements through only `VolumeUnit`, the system confirms:
+- **True linear scalability** — complexity grows by one file per new category, not exponentially  
+- **Architectural maturity** — the `IMeasurable` + `Quantity<U>` pattern handles any measurement type  
+- **Developer experience** — new categories follow a clear, repeatable pattern with no guesswork  
+- **Zero regression risk** — existing length and weight functionality is completely unaffected  
+
+This marks the point where the Quantity Measurement Application becomes a **production-ready, infinitely extensible measurement framework** capable of supporting any measurement category — temperature, time, pressure, speed, and beyond — without ever touching the core classes again.
+
+---
