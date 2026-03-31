@@ -66,25 +66,24 @@ namespace QuantityMeasurementAppBusinessLayer.Service
             return CreateBaseResult(first.Category, resultBase);
         }
 
-        public QuantityDTO Divide(QuantityDTO quantity, double divisor,int userId)
+        public double Divide(QuantityDTO first, QuantityDTO second, int userId)
         {
-            Validate(quantity);
-            EnsureArithmeticSupported(quantity.Category, "Division");
+            Validate(first);
+            Validate(second);
 
-            if (Math.Abs(divisor) < 0.0001)
-                throw new QuantityMeasurementException("Divisor cannot be zero.");
-            
-            var second = new QuantityDTO
-            {
-                Value = divisor,
-                Unit = "0",
-                Category = "0"
-            };
+            EnsureSameCategory(first, second, "divide");
 
-            var result = ConvertToBase(quantity) / divisor;
-            SaveHistory(quantity,second,"Divide",result,userId);
+            double firstBase = ConvertToBase(first);
+            double secondBase = ConvertToBase(second);
 
-            return CreateBaseResult(quantity.Category, result);
+            if (Math.Abs(secondBase) < 0.0001)
+                throw new QuantityMeasurementException("Cannot divide by zero quantity.");
+
+            double result = firstBase / secondBase;
+
+            SaveHistory(first, second, "Divide", result, userId);
+
+            return result; // ratio (unitless)
         }
 
         public QuantityDTO Convert(QuantityDTO source, string targetUnit,int userId)

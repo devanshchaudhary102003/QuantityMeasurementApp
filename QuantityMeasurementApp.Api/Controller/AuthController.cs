@@ -45,15 +45,15 @@ namespace QuantityMeasurementApp.Api.Controller{
             var claims = new[]
             {
                 new Claim(ClaimTypes.Name,user.UserName),
-                new Claim("UserId",user.Id.ToString())
+                new Claim(ClaimTypes.NameIdentifier,user.Id.ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("THIS_IS_A_SUPER_SECRET_KEY_1234567890"));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: "QuantityMeasurementAPI",
-                audience: "QuantityMeasurementAPI",
+                issuer: "QuantityMeasurementApp.Api",
+                audience: "QuantityMeasurementApp.Api",
                 claims: claims,
                 expires: DateTime.Now.AddHours(1),
                 signingCredentials: creds
