@@ -1397,7 +1397,14 @@ To:
 7. A new immutable `Quantity<U>` is returned for all operations  
 
 ---
-## Conversion Logic
+## ⚙️ Conversion Logic
+
+```
+// Convert any unit to base unit
+baseValue = value * unit.getConversionFactor()
+
+// Convert base unit to target unit
+result = baseValue / targetUnit.getConversionFactor()
 ```
 
 | Category | Base Unit  | Units Supported                        |
@@ -1407,6 +1414,7 @@ To:
 
 ---
 ## Example
+
 **Length (UC1–UC8 preserved):**  
 `new Quantity<>(1.0, LengthUnit.FEET).equals(new Quantity<>(12.0, LengthUnit.INCHES))`  
 → `true`
@@ -1607,7 +1615,7 @@ By introducing the `IMeasurable` interface and the `Quantity<U>` class, the syst
 This marks the culmination of a **complete, enterprise-grade measurement system** — extensible, maintainable, type-safe, and built on proven software design principles.
 
 ---
-## 📅 Date: 11 March 2026
+## 📅 Date: 19 March 2026
 # Quantity Measurement App – UC11: Volume Measurement Equality, Conversion, and Addition (Litre, Millilitre, Gallon)
 ## Overview
 UC11 extends the Quantity Measurement Application to support **volume measurements** alongside length and weight measurements.  
@@ -1654,6 +1662,12 @@ To:
 ---
 ## ⚙️ Conversion Logic
 
+```
+// Convert any unit to base unit (litre)
+baseValue = value * unit.getConversionFactor()
+
+// Convert base unit (litre) to target unit
+result = baseValue / targetUnit.getConversionFactor()
 ```
 
 | Unit        | Conversion Factor (to litres) |
@@ -1890,5 +1904,975 @@ By introducing volume measurements through only `VolumeUnit`, the system confirm
 - **Zero regression risk** — existing length and weight functionality is completely unaffected  
 
 This marks the point where the Quantity Measurement Application becomes a **production-ready, infinitely extensible measurement framework** capable of supporting any measurement category — temperature, time, pressure, speed, and beyond — without ever touching the core classes again.
+
+---
+## 📅 Date: 20 March 2026
+# Quantity Measurement App – UC12: Subtraction and Division Operations on Quantity Measurements
+## Overview
+UC12 extends the Quantity Measurement Application by introducing two new arithmetic operations — **subtraction** and **division** — to the generic `Quantity<U>` class.  
+Building on equality comparison, unit conversion, and addition from UC1–UC11, this use case enables comprehensive arithmetic manipulation of measurements across all supported categories (length, weight, volume).
+
+Subtraction finds the **difference** between two quantities of the same category. Division computes the **ratio** between two quantities, producing a dimensionless scalar result that represents how many times one measurement is larger than another.
+
+---
+## Objective
+To:
+- Add `subtract()` methods (implicit and explicit target unit) to `Quantity<U>`  
+- Add a `divide()` method returning a dimensionless `double` scalar  
+- Maintain all design patterns from UC1–UC11 (immutability, validation, cross-category safety)  
+- Add corresponding demonstration methods to `QuantityMeasurementApp`  
+- Preserve full backward compatibility with all UC1–UC11 functionality  
+
+---
+## Features
+- Subtraction of two quantities with result in implicit or explicit target unit  
+- Division of two quantities returning a dimensionless scalar ratio  
+- Cross-unit arithmetic within the same measurement category  
+- Division-by-zero prevention via `ArithmeticException`  
+- Cross-category arithmetic prevention (`IllegalArgumentException`)  
+- Immutability — original quantities unchanged by all operations  
+- Works across all categories: length, weight, and volume  
+
+---
+## Project Structure
+- `Quantity<U>` – Extended with `subtract()` and `divide()` methods  
+- `IMeasurable` – Unchanged; conversion methods reused by new operations  
+- `LengthUnit`, `WeightUnit`, `VolumeUnit` – Unchanged  
+- `QuantityMeasurementApp` – Extended with subtraction and division demonstration methods  
+
+---
+## Working Flow
+
+### Subtraction
+1. Client calls `subtract(other)` or `subtract(other, targetUnit)`  
+2. Validate: `other` is non-null, same category, finite value  
+3. Convert both operands to base unit  
+4. Compute: `baseResult = this.baseValue - other.baseValue`  
+5. Convert result to target unit (implicit = first operand's unit, or explicit)  
+6. Round to two decimal places  
+7. Return new immutable `Quantity<U>`  
+
+### Division
+1. Client calls `divide(other)`  
+2. Validate: `other` is non-null, same category, finite value, non-zero  
+3. Convert both operands to base unit  
+4. Compute: `result = this.baseValue / other.baseValue`  
+5. Return dimensionless `double` scalar (no unit)  
+
+---
+## ⚙️ Arithmetic Logic
+
+```
+// Subtraction
+baseResult = (this.value * this.unit.getConversionFactor())
+           - (other.value * other.unit.getConversionFactor())
+finalResult = baseResult / targetUnit.getConversionFactor()
+
+// Division (dimensionless)
+result = (this.value * this.unit.getConversionFactor())
+       / (other.value * other.unit.getConversionFactor())
+```
+
+| Operation   | Returns          | Commutative | Target Unit Support |
+|-------------|------------------|-------------|---------------------|
+| `add()`     | `Quantity<U>`    | Yes         | Implicit + Explicit |
+| `subtract()`| `Quantity<U>`    | No          | Implicit + Explicit |
+| `divide()`  | `double` scalar  | No          | N/A (dimensionless) |
+
+---
+## Example
+
+**Subtraction (Implicit Target Unit):**  
+`new Quantity<>(10.0, FEET).subtract(new Quantity<>(6.0, INCHES))`  
+→ `Quantity(9.5, FEET)`
+
+`new Quantity<>(10.0, KILOGRAM).subtract(new Quantity<>(5000.0, GRAM))`  
+→ `Quantity(5.0, KILOGRAM)`
+
+`new Quantity<>(5.0, LITRE).subtract(new Quantity<>(500.0, MILLILITRE))`  
+→ `Quantity(4.5, LITRE)`
+
+**Subtraction (Explicit Target Unit):**  
+`new Quantity<>(10.0, FEET).subtract(new Quantity<>(6.0, INCHES), INCHES)`  
+→ `Quantity(114.0, INCHES)`
+
+`new Quantity<>(5.0, LITRE).subtract(new Quantity<>(2.0, LITRE), MILLILITRE)`  
+→ `Quantity(3000.0, MILLILITRE)`
+
+**Subtraction (Negative Result):**  
+`new Quantity<>(5.0, FEET).subtract(new Quantity<>(10.0, FEET))`  
+→ `Quantity(-5.0, FEET)`
+
+**Subtraction (Zero Result):**  
+`new Quantity<>(10.0, FEET).subtract(new Quantity<>(120.0, INCHES))`  
+→ `Quantity(0.0, FEET)`
+
+**Division:**  
+`new Quantity<>(10.0, FEET).divide(new Quantity<>(2.0, FEET))`  
+→ `5.0`
+
+`new Quantity<>(24.0, INCHES).divide(new Quantity<>(2.0, FEET))`  
+→ `1.0`
+
+`new Quantity<>(5.0, LITRE).divide(new Quantity<>(10.0, LITRE))`  
+→ `0.5`
+
+`new Quantity<>(2000.0, GRAM).divide(new Quantity<>(1.0, KILOGRAM))`  
+→ `2.0`
+
+**Error Cases:**  
+`new Quantity<>(10.0, FEET).subtract(null)`  
+→ throws `IllegalArgumentException`
+
+`new Quantity<>(10.0, FEET).divide(new Quantity<>(0.0, FEET))`  
+→ throws `ArithmeticException`
+
+`new Quantity<>(10.0, FEET).subtract(new Quantity<>(5.0, KILOGRAM))`  
+→ throws `IllegalArgumentException` (cross-category)
+
+---
+## Concepts Used
+### Comprehensive Arithmetic Operations
+- Quantity system evolves from comparison/conversion to full arithmetic support  
+- Multiple operations share common validation and conversion patterns  
+- Design accommodates operation diversity without restructuring  
+
+### Non-Commutative Operations
+- Subtraction and division are order-dependent — swapping operands changes the result  
+- `A.subtract(B) ≠ B.subtract(A)` and `A.divide(B) ≠ B.divide(A)`  
+- Testing must verify non-commutativity, unlike commutative addition  
+
+### Division by Zero Handling
+- Fail-fast principle: throw `ArithmeticException` rather than return `Infinity` or `NaN`  
+- Validation prevents silent logic errors in downstream code  
+
+### Immutability in Arithmetic
+- All operations return new instances; original quantities remain unchanged  
+- Thread-safe and supports functional composition  
+- Consistent with all previous UC operations  
+
+### Target Unit Specification Pattern
+- Consistent overloading: implicit (first operand's unit) and explicit target unit  
+- Applies to subtraction just as it does to addition  
+- Division is dimensionless — no target unit concept applies  
+
+### Cross-Category Type Safety
+- `unit.getClass()` check prevents subtraction and division across categories  
+- Compile-time and runtime safety layers consistent with UC10+  
+
+### Private Helper Methods for Code Reuse
+- Shared conversion and validation logic reduces duplication across operations  
+- Adding future operations (modulo, power) follows the same helper structure  
+
+### Validation Consistency
+- All operations: null check, category check, finiteness check, zero check (division only)  
+- Centralized validation patterns prevent missed edge cases  
+
+### Precision Handling
+- Subtraction rounds to two decimal places (consistent with `add()`)  
+- Division returns raw `double` — no arbitrary rounding for dimensionless scalars  
+
+---
+## Implementation Steps
+
+### Step 1 – Add Subtraction Methods to Quantity Class
+- `subtract(Quantity<U> other)` — result in first operand's unit  
+- `subtract(Quantity<U> other, U targetUnit)` — result in specified unit  
+- Validate null, category, and finite value before operating  
+
+### Step 2 – Add Division Method to Quantity Class
+- `divide(Quantity<U> other)` — returns `double` scalar  
+- Validate null, category, finiteness, and non-zero divisor  
+- Throw `ArithmeticException` for division by zero  
+
+### Step 3 – Add Demonstration Methods to QuantityMeasurementApp
+- `demonstrateSubtraction()` — shows implicit and explicit target unit cases  
+- `demonstrateDivision()` — shows ratio results and edge cases  
+
+### Step 4 – Update Main Method
+- Add demonstration calls for subtraction and division across all categories  
+
+### Step 5 – Add Comprehensive Unit Tests
+- Cover all subtraction and division scenarios listed in test cases below  
+
+### Step 6 – Test Edge Cases and Error Handling
+- Null arguments, null target unit, `NaN`, infinite values, division by zero, cross-category  
+
+### Step 7 – Maintain Consistency with Addition
+- Same implicit/explicit overloading pattern  
+- Same immutability guarantees  
+- Same rounding to two decimal places (subtraction)  
+
+### Step 8 – Document with JavaDoc
+- Method purpose, parameters, return values, exceptions, usage examples  
+- Note non-commutativity and mathematical properties  
+
+### Step 9 – Integration Testing
+- Verify subtraction and division work across all three categories  
+- Confirm coexistence with equality, conversion, and addition operations  
+- Run all UC1–UC11 tests unchanged to confirm backward compatibility  
+
+---
+## Test Scenarios
+### Subtraction — Same Unit
+- `FEET - FEET`, `LITRE - LITRE`, `KILOGRAM - KILOGRAM`  
+- Result in first operand's unit  
+
+### Subtraction — Different Units (Same Category)
+- `FEET - INCHES`, `KILOGRAM - GRAM`, `LITRE - MILLILITRE`  
+- Conversion applied before subtraction  
+
+### Subtraction — Explicit Target Unit
+- Result expressed in any supported unit of the same category  
+
+### Subtraction — Special Results
+- Negative result (second operand larger than first)  
+- Zero result (equivalent quantities)  
+- Identity (subtracting zero)  
+- Subtracting negative operand (equivalent to addition)  
+
+### Division — Same Unit
+- `FEET ÷ FEET`, `LITRE ÷ LITRE`, `KILOGRAM ÷ KILOGRAM`  
+- Returns dimensionless scalar  
+
+### Division — Different Units (Same Category)
+- `INCHES ÷ FEET`, `GRAM ÷ KILOGRAM`, `MILLILITRE ÷ LITRE`  
+- Units cancel out after base-unit conversion  
+
+### Division — Ratio Cases
+- Ratio > 1.0 (first operand larger)  
+- Ratio < 1.0 (first operand smaller)  
+- Ratio = 1.0 (equivalent quantities)  
+- Very large ratios (e.g., `1e6 ÷ 1`)  
+- Very small ratios (e.g., `1 ÷ 1e6`)  
+
+### Error Cases
+- Null operand → `IllegalArgumentException`  
+- Null target unit → `IllegalArgumentException`  
+- Cross-category operation → `IllegalArgumentException`  
+- Division by zero → `ArithmeticException`  
+
+### Mathematical Properties
+- Non-commutativity of subtraction and division  
+- Inverse relationship: `A.add(B).subtract(B) ≈ A`  
+- Non-associativity of division: `(A ÷ B) ÷ C ≠ A ÷ (B ÷ C)`  
+
+### Immutability
+- Original quantities unchanged after subtraction  
+- Original quantities unchanged after division  
+
+---
+## Sample Test Cases
+- `testSubtraction_SameUnit_FeetMinusFeet()`  
+- `testSubtraction_SameUnit_LitreMinusLitre()`  
+- `testSubtraction_CrossUnit_FeetMinusInches()`  
+- `testSubtraction_CrossUnit_InchesMinusFeet()`  
+- `testSubtraction_ExplicitTargetUnit_Feet()`  
+- `testSubtraction_ExplicitTargetUnit_Inches()`  
+- `testSubtraction_ExplicitTargetUnit_Millilitre()`  
+- `testSubtraction_ResultingInNegative()`  
+- `testSubtraction_ResultingInZero()`  
+- `testSubtraction_WithZeroOperand()`  
+- `testSubtraction_WithNegativeValues()`  
+- `testSubtraction_NonCommutative()`  
+- `testSubtraction_WithLargeValues()`  
+- `testSubtraction_WithSmallValues()`  
+- `testSubtraction_NullOperand()`  
+- `testSubtraction_NullTargetUnit()`  
+- `testSubtraction_CrossCategory()`  
+- `testSubtraction_AllMeasurementCategories()`  
+- `testSubtraction_ChainedOperations()`  
+- `testSubtraction_Immutability()`  
+- `testSubtraction_PrecisionAndRounding()`  
+- `testDivision_SameUnit_FeetDividedByFeet()`  
+- `testDivision_SameUnit_LitreDividedByLitre()`  
+- `testDivision_CrossUnit_FeetDividedByInches()`  
+- `testDivision_CrossUnit_KilogramDividedByGram()`  
+- `testDivision_RatioGreaterThanOne()`  
+- `testDivision_RatioLessThanOne()`  
+- `testDivision_RatioEqualToOne()`  
+- `testDivision_NonCommutative()`  
+- `testDivision_ByZero()`  
+- `testDivision_WithLargeRatio()`  
+- `testDivision_WithSmallRatio()`  
+- `testDivision_NullOperand()`  
+- `testDivision_CrossCategory()`  
+- `testDivision_AllMeasurementCategories()`  
+- `testDivision_Associativity()`  
+- `testDivision_Immutability()`  
+- `testDivision_PrecisionHandling()`  
+- `testSubtractionAndDivision_Integration()`  
+- `testSubtractionAddition_Inverse()`  
+
+---
+## Conclusion
+UC12 completes the arithmetic foundation of the Quantity Measurement Application by adding **subtraction and division** alongside the existing addition operation.  
+Both operations seamlessly integrate into the generic `Quantity<U>` design — following the same validation, conversion, immutability, and type-safety patterns established across UC1–UC11.
+
+The system now supports:
+- **Full arithmetic** — add, subtract, divide across any supported measurement category  
+- **Non-commutative awareness** — design and tests account for order-dependent operations  
+- **Robust error handling** — null safety, cross-category prevention, and division-by-zero protection  
+- **Consistent API design** — implicit and explicit target unit overloading mirrors the `add()` pattern  
+
+With UC12, the Quantity Measurement Application is a **fully featured, production-grade measurement framework** — extensible, type-safe, arithmetically complete, and built on proven software engineering principles.
+
+---
+## 📅 Date: 21 March 2026
+# Quantity Measurement App – UC13: Centralized Arithmetic Logic to Enforce DRY in Quantity Operations
+## Overview
+UC13 refactors the arithmetic operations (addition, subtraction, division) implemented in UC12 to **eliminate code duplication** and enforce the **DRY (Don't Repeat Yourself) principle**.  
+Instead of repeating unit conversion, base-unit normalization, and validation logic across each arithmetic method, a centralized private helper extracts all common logic into a single reusable implementation.
+
+The public API remains completely unchanged — all UC12 behaviors are preserved while the internal structure is optimized for clarity, consistency, and scalability.
+
+---
+## Objective
+To:
+- Create a private `ArithmeticOperation` enum to dispatch operations cleanly  
+- Extract a centralized `validateArithmeticOperands()` helper for shared validation  
+- Extract a centralized `performBaseArithmetic()` helper for shared conversion and computation  
+- Refactor `add()`, `subtract()`, and `divide()` to delegate to these helpers  
+- Eliminate all duplicated validation, conversion, and error-handling code  
+- Maintain full backward compatibility with all UC12 test cases  
+
+---
+## Objective
+To:
+- Create a private `ArithmeticOperation` enum to dispatch operations cleanly  
+- Extract a centralized `validateArithmeticOperands()` helper for shared validation  
+- Extract a centralized `performBaseArithmetic()` helper for shared conversion and computation  
+- Refactor `add()`, `subtract()`, and `divide()` to delegate to these helpers  
+- Eliminate all duplicated validation, conversion, and error-handling code  
+- Maintain full backward compatibility with all UC12 test cases  
+
+---
+## Features
+- `ArithmeticOperation` enum with `ADD`, `SUBTRACT`, `DIVIDE` constants (abstract method or lambda approach)  
+- `validateArithmeticOperands()` — single source of truth for null, category, and finiteness checks  
+- `performBaseArithmetic()` — single source of truth for base-unit conversion and computation  
+- All public method signatures unchanged — zero impact on callers  
+- Consistent error messages and exception types across all operations  
+- Scalable pattern: new operations (multiply, modulo) require only a new enum constant  
+
+---
+## Project Structure
+- `Quantity<U>` – Refactored internally; public API unchanged  
+  - `ArithmeticOperation` (private enum) – dispatches `ADD`, `SUBTRACT`, `DIVIDE`  
+  - `validateArithmeticOperands()` (private) – centralized validation  
+  - `performBaseArithmetic()` (private) – centralized conversion and computation  
+- `IMeasurable`, `LengthUnit`, `WeightUnit`, `VolumeUnit` – Unchanged  
+- `QuantityMeasurementApp` – Unchanged; no public API changes  
+
+---
+## Working Flow
+
+### Before UC13 (UC12 Pattern — Duplicated)
+```
+add()       → null check → category check → finite check → convert → compute → convert back
+subtract()  → null check → category check → finite check → convert → compute → convert back
+divide()    → null check → category check → finite check → convert → compute
+```
+
+### After UC13 (Centralized Pattern)
+```
+add()       → validateArithmeticOperands() → performBaseArithmetic(ADD)    → convert result
+subtract()  → validateArithmeticOperands() → performBaseArithmetic(SUBTRACT) → convert result
+divide()    → validateArithmeticOperands() → performBaseArithmetic(DIVIDE) → return scalar
+```
+
+### Internal Flow Example
+```
+q1.subtract(q2, FEET)
+  ↓
+validateArithmeticOperands(q2, FEET, true)
+  ↓
+performBaseArithmetic(q2, SUBTRACT)
+  ↓
+SUBTRACT.compute(q1.baseValue, q2.baseValue)
+  ↓
+Convert result to FEET
+  ↓
+Return new Quantity<>(..., FEET)
+```
+
+---
+## ⚙️ ArithmeticOperation Enum
+
+Two valid implementation approaches:
+
+**Approach 1 — Abstract Interface Method (recommended for complex logic):**
+```java
+enum ArithmeticOperation {
+    ADD {
+        @Override
+        public double compute(double a, double b) { return a + b; }
+    },
+    SUBTRACT {
+        @Override
+        public double compute(double a, double b) { return a - b; }
+    },
+    DIVIDE {
+        @Override
+        public double compute(double a, double b) {
+            if (b == 0) throw new ArithmeticException("Division by zero");
+            return a / b;
+        }
+    };
+    public abstract double compute(double a, double b);
+}
+```
+
+**Approach 2 — Lambda Expression (modern and concise):**
+```java
+enum ArithmeticOperation {
+    ADD((a, b) -> a + b),
+    SUBTRACT((a, b) -> a - b),
+    DIVIDE((a, b) -> {
+        if (b == 0) throw new ArithmeticException("Division by zero");
+        return a / b;
+    });
+
+    private final DoubleBinaryOperator operator;
+    ArithmeticOperation(DoubleBinaryOperator operator) { this.operator = operator; }
+    public double compute(double a, double b) { return operator.applyAsDouble(a, b); }
+}
+```
+
+---
+## Disadvantages of UC12 Addressed
+
+| UC12 Problem | UC13 Solution |
+|--------------|---------------|
+| Validation logic copied across 3+ methods | Single `validateArithmeticOperands()` helper |
+| Conversion logic repeated in each method | Single `performBaseArithmetic()` helper |
+| Inconsistent error messages possible | Centralized messages from one location |
+| Bug fixes needed in multiple places | Change once → all operations updated |
+| Future operations (multiply) would duplicate further | New enum constant only — zero other changes |
+| Test duplication for validation scenarios | One validation test suite covers all operations |
+
+---
+## Example
+
+**All outputs identical to UC12:**
+
+`new Quantity<>(1.0, FEET).add(new Quantity<>(12.0, INCHES))`  
+→ `Quantity(2.0, FEET)` *(internal: `performBaseArithmetic(other, ADD)`)*
+
+`new Quantity<>(10.0, FEET).subtract(new Quantity<>(6.0, INCHES))`  
+→ `Quantity(9.5, FEET)` *(internal: `performBaseArithmetic(other, SUBTRACT)`)*
+
+`new Quantity<>(10.0, FEET).divide(new Quantity<>(2.0, FEET))`  
+→ `5.0` *(internal: `performBaseArithmetic(other, DIVIDE)`)*
+
+**Error cases (consistent across all operations):**  
+`new Quantity<>(10.0, FEET).add(null)` → `IllegalArgumentException`  
+`new Quantity<>(10.0, FEET).subtract(new Quantity<>(5.0, KILOGRAM))` → `IllegalArgumentException`  
+`new Quantity<>(10.0, FEET).divide(new Quantity<>(0.0, FEET))` → `ArithmeticException`
+
+---
+## Concepts Used
+### DRY Principle Enforcement
+- Validation and conversion logic implemented once, reused by all operations  
+- Future changes to validation rules require a single update  
+- Eliminates inconsistency risk across arithmetic methods  
+
+### Lambda Expressions
+- `(a, b) -> a + b` is a concise anonymous function passed as data  
+- `DoubleBinaryOperator` functional interface: takes two `double` values, returns one  
+- Compiler bridges the lambda to the interface's `applyAsDouble()` method  
+
+### Functional Interface
+- A `@FunctionalInterface` has exactly one abstract method  
+- `DoubleBinaryOperator` is the functional interface used in the lambda approach  
+- Enables treating arithmetic operations as first-class values  
+
+### Enum-Based Operation Dispatch
+- Type-safe alternative to `if-else` or `switch` chains  
+- Each enum constant carries its own logic — extensible without modifying callers  
+- Adding `MULTIPLY` requires only a new constant and no changes elsewhere  
+
+### Single Source of Truth
+- Validation logic appears once in `validateArithmeticOperands()`  
+- Conversion logic appears once in `performBaseArithmetic()`  
+- Error messages are identical and centralized  
+
+### Separation of Concerns
+- Public methods: handle return type and API contracts  
+- `validateArithmeticOperands()`: handles safety checks  
+- `performBaseArithmetic()`: handles conversion and computation  
+
+### Private Method Encapsulation
+- Helper methods are `private` — invisible to callers  
+- Reduces API surface area; implementation details protected  
+
+### Scalability for Future Operations
+- Adding multiplication: one new `MULTIPLY` enum constant  
+- No changes to validation, conversion, or public methods  
+- Codebase grows linearly, not by duplication  
+
+### Refactoring Without Behavioral Change
+- Public API and all outputs remain identical to UC12  
+- Existing test cases pass without modification  
+- Internal restructuring improves quality without introducing regression  
+
+---
+## Implementation Steps
+
+### Step 1 – Create ArithmeticOperation Enum
+- Define `ADD`, `SUBTRACT`, `DIVIDE` constants  
+- Use abstract method approach or lambda + `DoubleBinaryOperator`  
+- `DIVIDE` constant handles division-by-zero check  
+
+### Step 2 – Create Centralized Validation Helper
+```java
+private void validateArithmeticOperands(Quantity<U> other, U targetUnit, boolean targetUnitRequired)
+```
+- Null check on `other`  
+- Category type check via `unit.getClass()`  
+- Finiteness validation for both values  
+- Optional target unit null check  
+
+### Step 3 – Create Core Arithmetic Helper
+```java
+private double performBaseArithmetic(Quantity<U> other, ArithmeticOperation operation)
+```
+- Convert `this` to base unit  
+- Convert `other` to base unit  
+- Call `operation.compute(thisBase, otherBase)`  
+- Return base-unit result  
+
+### Step 4 – Refactor Public Arithmetic Methods
+- `add(other)` / `add(other, targetUnit)` → validate → `performBaseArithmetic(ADD)` → convert  
+- `subtract(other)` / `subtract(other, targetUnit)` → validate → `performBaseArithmetic(SUBTRACT)` → convert  
+- `divide(other)` → validate → `performBaseArithmetic(DIVIDE)` → return scalar  
+
+### Step 5 – Verify Backward Compatibility
+- Run all UC12 test cases without modification  
+- Confirm all outputs, exception types, and messages are identical  
+
+---
+## Test Scenarios
+### Validation Consistency
+- `add(null)`, `subtract(null)`, `divide(null)` → same exception and message  
+- Cross-category for all three operations → same exception  
+- `NaN` / infinite value for all three operations → same exception  
+- Null target unit for `add`/`subtract` → exception  
+
+### Enum Operation Dispatch
+- `ADD.compute(10, 5)` → `15.0`  
+- `SUBTRACT.compute(10, 5)` → `5.0`  
+- `DIVIDE.compute(10, 5)` → `2.0`  
+- `DIVIDE.compute(10, 0)` → `ArithmeticException`  
+
+### Helper Method Correctness
+- `performBaseArithmetic` correctly converts both operands before operating  
+- Result correctly converted from base unit to target unit for `add`/`subtract`  
+- Division returns raw scalar without further conversion  
+
+### Backward Compatibility
+- All UC12 addition tests pass unchanged  
+- All UC12 subtraction tests pass unchanged  
+- All UC12 division tests pass unchanged  
+
+### Rounding Consistency
+- `add`/`subtract` results rounded to two decimal places  
+- `divide` returns raw `double` without rounding  
+
+### Immutability
+- Original quantities unchanged after `add`, `subtract`, `divide`  
+
+### Scalability
+- All operations work across length, weight, and volume  
+- Future `MULTIPLY` pattern demonstrable with same structure  
+
+---
+## Sample Test Cases
+- `testRefactoring_Add_DelegatesViaHelper()`  
+- `testRefactoring_Subtract_DelegatesViaHelper()`  
+- `testRefactoring_Divide_DelegatesViaHelper()`  
+- `testValidation_NullOperand_ConsistentAcrossOperations()`  
+- `testValidation_CrossCategory_ConsistentAcrossOperations()`  
+- `testValidation_FiniteValue_ConsistentAcrossOperations()`  
+- `testValidation_NullTargetUnit_AddSubtractReject()`  
+- `testArithmeticOperation_Add_EnumComputation()`  
+- `testArithmeticOperation_Subtract_EnumComputation()`  
+- `testArithmeticOperation_Divide_EnumComputation()`  
+- `testArithmeticOperation_DivideByZero_EnumThrows()`  
+- `testEnumConstant_ADD_CorrectlyAdds()`  
+- `testEnumConstant_SUBTRACT_CorrectlySubtracts()`  
+- `testEnumConstant_DIVIDE_CorrectlyDivides()`  
+- `testPerformBaseArithmetic_ConversionAndOperation()`  
+- `testHelper_BaseUnitConversion_Correct()`  
+- `testHelper_ResultConversion_Correct()`  
+- `testAdd_UC12_BehaviorPreserved()`  
+- `testSubtract_UC12_BehaviorPreserved()`  
+- `testDivide_UC12_BehaviorPreserved()`  
+- `testRounding_AddSubtract_TwoDecimalPlaces()`  
+- `testRounding_Divide_NoRounding()`  
+- `testRounding_Helper_Accuracy()`  
+- `testImplicitTargetUnit_AddSubtract()`  
+- `testExplicitTargetUnit_AddSubtract_Overrides()`  
+- `testImmutability_AfterAdd_ViaCentralizedHelper()`  
+- `testImmutability_AfterSubtract_ViaCentralizedHelper()`  
+- `testImmutability_AfterDivide_ViaCentralizedHelper()`  
+- `testAllOperations_AcrossAllCategories()`  
+- `testCodeDuplication_ValidationLogic_Eliminated()`  
+- `testCodeDuplication_ConversionLogic_Eliminated()`  
+- `testEnumDispatch_AllOperations_CorrectlyDispatched()`  
+- `testFutureOperation_MultiplicationPattern()`  
+- `testErrorMessage_Consistency_Across_Operations()`  
+- `testHelper_PrivateVisibility()`  
+- `testValidation_Helper_PrivateVisibility()`  
+- `testArithmetic_Chain_Operations()`  
+- `testRefactoring_Validation_UnifiedBehavior()`  
+
+---
+## Conclusion
+UC13 applies the same architectural discipline to **internal implementation** that UC10 applied to the class hierarchy — eliminating duplication and establishing a single source of truth.  
+By introducing the `ArithmeticOperation` enum and two private helper methods, the system achieves:
+- **Zero duplication** — validation and conversion logic written once, shared by all operations  
+- **Consistent behavior** — all operations fail identically for invalid inputs  
+- **Effortless extensibility** — adding multiplication or modulo requires one enum constant  
+- **Improved readability** — public methods are short and expressive; boilerplate is abstracted away  
+- **Full backward compatibility** — all UC12 tests pass without a single modification  
+
+UC13 demonstrates that **great architecture is not just about external design** — internal code quality matters equally, and the DRY principle is as important inside a class as it is across the system.
+
+---
+## 📅 Date: 23 March 2026
+# Quantity Measurement App – UC14: Temperature Measurement with Selective Arithmetic Support and IMeasurable Refactoring
+## Overview
+UC14 extends the Quantity Measurement Application to support **temperature measurements** alongside length, weight, and volume — while simultaneously revealing and resolving a fundamental limitation in the current `IMeasurable` interface design.
+
+Unlike linear measurement categories (length, weight, volume), temperature conversions are **non-linear** and arithmetic on absolute temperature values is **physically meaningless** (100°C + 50°C ≠ 150°C in any practical sense). This means temperature can only support equality comparison and unit conversion — not addition, subtraction, or division.
+
+To accommodate this, UC14 refactors `IMeasurable` to introduce **optional operation support via default methods** and a `SupportsArithmetic` functional interface, allowing temperature to coexist cleanly with other categories while the existing system remains completely unchanged.
+
+---
+## Objective
+To:
+- Refactor `IMeasurable` to support optional arithmetic through default methods and a `SupportsArithmetic` functional interface  
+- Create a `TemperatureUnit` enum implementing `IMeasurable` with non-linear conversion logic  
+- Enhance `Quantity<U>` to check operation support before executing arithmetic  
+- Ensure `TemperatureUnit` throws `UnsupportedOperationException` for unsupported operations  
+- Maintain full backward compatibility with all UC1–UC13 functionality  
+
+---
+## Features
+- Temperature equality comparison across Celsius and Fahrenheit  
+- Non-linear temperature unit conversion (°C ↔ °F) using lambda expressions  
+- `UnsupportedOperationException` thrown for add, subtract, and divide on temperature  
+- `SupportsArithmetic` functional interface flags whether a unit supports arithmetic  
+- `validateOperationSupport()` default method overridden in `TemperatureUnit`  
+- All existing categories (length, weight, volume) inherit default `true` — zero changes required  
+- Cross-category type safety maintained (temperature ≠ length ≠ weight ≠ volume)  
+
+---
+## Project Structure
+- `IMeasurable` – Refactored with `SupportsArithmetic` functional interface and default methods  
+- `TemperatureUnit` – New enum implementing `IMeasurable` with lambda-based non-linear conversions  
+- `Quantity<U>` – Enhanced to call `validateOperationSupport()` before arithmetic  
+- `LengthUnit`, `WeightUnit`, `VolumeUnit` – Unchanged; inherit default arithmetic support  
+- `QuantityMeasurementApp` – Main method extended with temperature demonstrations  
+
+---
+## Working Flow
+
+### Equality
+1. Two `Quantity<TemperatureUnit>` objects provided  
+2. Both values converted to **Celsius (base unit)** using non-linear formulas  
+3. Compared using `Double.compare()` within epsilon tolerance  
+4. Returns `true` if equivalent, `false` otherwise  
+
+### Conversion
+1. `convertTo(targetUnit)` called on a `Quantity<TemperatureUnit>`  
+2. Special handling: if `TemperatureUnit`, invoke non-linear conversion formula directly  
+3. New immutable `Quantity<TemperatureUnit>` returned  
+
+### Arithmetic (Unsupported)
+1. `add()`, `subtract()`, or `divide()` called on `Quantity<TemperatureUnit>`  
+2. `this.unit.validateOperationSupport(operation.name())` called first  
+3. `TemperatureUnit` overrides this method to throw `UnsupportedOperationException`  
+4. Clear error message returned explaining why the operation is invalid  
+
+---
+## ⚙️ IMeasurable Refactoring
+
+```java
+@FunctionalInterface
+public interface SupportsArithmetic {
+    boolean isSupported();
+}
+
+// Default in IMeasurable — all existing units inherit this (no changes needed)
+SupportsArithmetic supportsArithmetic = () -> true;
+
+default boolean supportsArithmetic() {
+    return supportsArithmetic.isSupported();
+}
+
+// Overridden by TemperatureUnit to throw UnsupportedOperationException
+default void validateOperationSupport(String operation) {
+    // No-op by default; TemperatureUnit overrides this
+}
+```
+
+## ⚙️ Temperature Conversion Formulas
+
+```
+Celsius → Fahrenheit:   °F = (°C × 9/5) + 32
+Fahrenheit → Celsius:   °C = (°F − 32) × 5/9
+```
+
+| Unit        | Base Unit | Conversion Formula (to Celsius)     |
+|-------------|-----------|-------------------------------------|
+| CELSIUS     | Celsius   | Identity — no conversion needed     |
+| FAHRENHEIT  | Celsius   | `(°F − 32) × 5/9`                   |
+
+Lambda expressions used per constant:
+```java
+// Identity (Celsius → Celsius)
+final Function<Double, Double> CELSIUS_TO_CELSIUS = (celsius) -> celsius;
+
+// Fahrenheit → Celsius
+final Function<Double, Double> FAHRENHEIT_TO_CELSIUS = (f) -> (f - 32) * 5.0 / 9.0;
+
+// Arithmetic support flag
+SupportsArithmetic supportsArithmetic = () -> false;
+```
+
+---
+## Disadvantages of UC13 Addressed
+
+| UC13 Limitation | UC14 Solution |
+|-----------------|---------------|
+| `IMeasurable` assumes all categories support arithmetic | `SupportsArithmetic` functional interface flags support per unit |
+| `Quantity` has no mechanism to block unsupported operations | `validateOperationSupport()` checked before any arithmetic |
+| Interface forces temperature to implement dummy arithmetic | Default no-op with override in `TemperatureUnit` |
+| No compile-time or early runtime warning for invalid ops | `UnsupportedOperationException` thrown with clear message |
+| ISP violated — single interface mixes conversion and arithmetic | Default methods segregate optional operations cleanly |
+
+---
+## Example
+
+**Equality:**  
+`new Quantity<>(0.0, CELSIUS).equals(new Quantity<>(32.0, FAHRENHEIT))`  
+→ `true`
+
+`new Quantity<>(100.0, CELSIUS).equals(new Quantity<>(212.0, FAHRENHEIT))`  
+→ `true`
+
+`new Quantity<>(-40.0, CELSIUS).equals(new Quantity<>(-40.0, FAHRENHEIT))`  
+→ `true` (the equal point)
+
+**Conversion:**  
+`new Quantity<>(100.0, CELSIUS).convertTo(FAHRENHEIT)`  
+→ `Quantity(212.0, FAHRENHEIT)`
+
+`new Quantity<>(32.0, FAHRENHEIT).convertTo(CELSIUS)`  
+→ `Quantity(0.0, CELSIUS)`
+
+`new Quantity<>(-40.0, CELSIUS).convertTo(FAHRENHEIT)`  
+→ `Quantity(-40.0, FAHRENHEIT)`
+
+**Unsupported Operations:**  
+`new Quantity<>(100.0, CELSIUS).add(new Quantity<>(50.0, CELSIUS))`  
+→ throws `UnsupportedOperationException: "Temperature does not support addition..."`
+
+`new Quantity<>(100.0, CELSIUS).subtract(new Quantity<>(50.0, CELSIUS))`  
+→ throws `UnsupportedOperationException`
+
+`new Quantity<>(100.0, CELSIUS).divide(new Quantity<>(50.0, CELSIUS))`  
+→ throws `UnsupportedOperationException`
+
+**Cross-Category Prevention:**  
+`new Quantity<>(100.0, CELSIUS).equals(new Quantity<>(100.0, FEET))`  
+→ `false`
+
+`new Quantity<>(50.0, CELSIUS).equals(new Quantity<>(50.0, KILOGRAM))`  
+→ `false`
+
+---
+## Concepts Used
+### Interface Segregation Principle (ISP)
+- Refactored `IMeasurable` separates mandatory conversion from optional arithmetic  
+- Categories implement only what they genuinely support  
+- Forcing temperature to implement dummy arithmetic violates ISP  
+
+### Functional Interface
+- `SupportsArithmetic` has exactly one abstract method: `boolean isSupported()`  
+- Used with lambda `() -> false` in `TemperatureUnit` to flag no arithmetic support  
+- Enables concise, expressive capability declaration  
+
+### Lambda Expressions
+- Temperature conversion formulas expressed as `Function<Double, Double>` lambdas  
+- Each `TemperatureUnit` constant carries its own conversion lambda  
+- `CELSIUS_TO_CELSIUS = (celsius) -> celsius` — identity function  
+- `FAHRENHEIT_TO_CELSIUS = (f) -> (f - 32) * 5.0 / 9.0` — formula-based  
+
+### Default Methods in Interfaces
+- Provide default implementations that existing units inherit without code changes  
+- `TemperatureUnit` overrides `validateOperationSupport()` to block arithmetic  
+- Enables non-breaking interface evolution  
+
+### Non-Linear Conversions
+- Temperature conversions use addition/subtraction formulas, not simple multiplication  
+- Requires special handling in `Quantity.convertTo()` for `TemperatureUnit`  
+- Fundamentally different from length, weight, and volume (which are linear)  
+
+### Absolute vs. Relative Temperatures
+- Absolute temperature: 100°C is a specific point on a scale  
+- Arithmetic on absolute temperatures is physically meaningless  
+- Subtraction of two temperatures gives a *difference* — which is a different concept  
+
+### Capability-Based Design
+- Query units about supported operations before attempting them  
+- Graceful degradation with clear, informative error messages  
+- More user-friendly than silent failures or cryptic exceptions  
+
+### Exception Semantics
+- `UnsupportedOperationException` — operation not available for this category  
+- `IllegalArgumentException` — invalid argument provided  
+- `ArithmeticException` — mathematical error (e.g., division by zero)  
+- Each exception type communicates a distinct kind of failure  
+
+### Backward Compatibility Through Defaults
+- Existing units (`LengthUnit`, `WeightUnit`, `VolumeUnit`) require zero changes  
+- Default `() -> true` lambda and no-op `validateOperationSupport()` preserve current behavior  
+- Refactoring is purely additive and non-breaking  
+
+---
+## Implementation Steps
+
+### Step 1 – Refactor IMeasurable Interface
+- Add `SupportsArithmetic` `@FunctionalInterface` with `boolean isSupported()`  
+- Add default `SupportsArithmetic supportsArithmetic = () -> true`  
+- Add `default boolean supportsArithmetic()` returning `supportsArithmetic.isSupported()`  
+- Add `default void validateOperationSupport(String operation)` as no-op  
+
+### Step 2 – No Changes to LengthUnit, WeightUnit, VolumeUnit
+- All three inherit default `supportsArithmetic = () -> true`  
+- `validateOperationSupport()` default no-op applies — all operations allowed  
+
+### Step 3 – Create TemperatureUnit Enum
+- Define `CELSIUS`, `FAHRENHEIT` constants  
+- Assign lambda conversion functions per constant  
+- Set `SupportsArithmetic supportsArithmetic = () -> false`  
+- Override `validateOperationSupport()` to throw `UnsupportedOperationException`  
+- Implement `convertToBaseUnit()` and `convertFromBaseUnit()` using formula lambdas  
+
+### Step 4 – Update Quantity Class
+- Equality: works as-is via `convertToBaseUnit()`  
+- Conversion: check if unit is `TemperatureUnit`; if so, invoke non-linear formula directly  
+- Arithmetic: call `this.unit.validateOperationSupport(operation.name())` before processing  
+
+### Step 5 – Update QuantityMeasurementApp
+- No changes to existing demonstration methods  
+- Add temperature equality, conversion, and unsupported operation demonstrations in `main()`  
+
+### Step 6 – Comprehensive Test Coverage
+- Equality across all temperature unit pairs  
+- Conversion accuracy with epsilon tolerance  
+- Unsupported operation exception handling  
+- Cross-category prevention  
+- Edge cases: absolute zero, -40° equal point, large values  
+
+---
+## Test Scenarios
+### Temperature Equality
+- Celsius-to-Celsius same value → `true`  
+- Fahrenheit-to-Fahrenheit same value → `true`  
+- 0°C = 32°F → `true`  
+- 100°C = 212°F → `true`  
+- −40°C = −40°F → `true` (equal point)  
+- Different values in same unit → `false`  
+- Null comparison → `false`  
+- Same reference → `true` (reflexive)  
+- Symmetric and transitive properties  
+
+### Temperature Conversion
+- Celsius → Fahrenheit (multiple values: 0, 50, 100, −40, −20)  
+- Fahrenheit → Celsius (bidirectional)  
+- Same unit conversion (no change)  
+- Zero value conversion (0°C → 32°F)  
+- Negative value conversion  
+- Large value conversion  
+- Round-trip conversion within epsilon  
+
+### Unsupported Operations
+- `add()` → `UnsupportedOperationException`  
+- `subtract()` → `UnsupportedOperationException`  
+- `divide()` → `UnsupportedOperationException`  
+- Error message is clear and informative  
+
+### Operation Support Methods
+- `TemperatureUnit.CELSIUS.supportsArithmetic()` → `false`  
+- `LengthUnit.FEET.supportsArithmetic()` → `true` (inherited default)  
+- `WeightUnit.KILOGRAM.supportsArithmetic()` → `true`  
+- `VolumeUnit.LITRE.supportsArithmetic()` → `true`  
+
+### Cross-Category Prevention
+- Temperature vs. length → `false`  
+- Temperature vs. weight → `false`  
+- Temperature vs. volume → `false`  
+
+### IMeasurable Evolution
+- Existing units work without any modification  
+- New default methods do not break existing implementations  
+
+---
+## Sample Test Cases
+- `testTemperatureEquality_CelsiusToCelsius_SameValue()`  
+- `testTemperatureEquality_FahrenheitToFahrenheit_SameValue()`  
+- `testTemperatureEquality_CelsiusToFahrenheit_0Celsius32Fahrenheit()`  
+- `testTemperatureEquality_CelsiusToFahrenheit_100Celsius212Fahrenheit()`  
+- `testTemperatureEquality_CelsiusToFahrenheit_Negative40Equal()`  
+- `testTemperatureEquality_SymmetricProperty()`  
+- `testTemperatureEquality_ReflexiveProperty()`  
+- `testTemperatureConversion_CelsiusToFahrenheit_VariousValues()`  
+- `testTemperatureConversion_FahrenheitToCelsius_VariousValues()`  
+- `testTemperatureConversion_RoundTrip_PreservesValue()`  
+- `testTemperatureConversion_SameUnit()`  
+- `testTemperatureConversion_ZeroValue()`  
+- `testTemperatureConversion_NegativeValues()`  
+- `testTemperatureConversion_LargeValues()`  
+- `testTemperatureUnsupportedOperation_Add()`  
+- `testTemperatureUnsupportedOperation_Subtract()`  
+- `testTemperatureUnsupportedOperation_Divide()`  
+- `testTemperatureUnsupportedOperation_ErrorMessage()`  
+- `testTemperatureVsLengthIncompatibility()`  
+- `testTemperatureVsWeightIncompatibility()`  
+- `testTemperatureVsVolumeIncompatibility()`  
+- `testOperationSupportMethods_TemperatureUnitAddition()`  
+- `testOperationSupportMethods_TemperatureUnitDivision()`  
+- `testOperationSupportMethods_LengthUnitAddition()`  
+- `testOperationSupportMethods_WeightUnitDivision()`  
+- `testIMeasurableInterface_Evolution_BackwardCompatible()`  
+- `testTemperatureUnit_NonLinearConversion()`  
+- `testTemperatureUnit_AllConstants()`  
+- `testTemperatureUnit_NameMethod()`  
+- `testTemperatureNullUnitValidation()`  
+- `testTemperatureNullOperandValidation_InComparison()`  
+- `testTemperatureDifferentValuesInequality()`  
+- `testTemperatureBackwardCompatibility_UC1_Through_UC13()`  
+- `testTemperatureConversionPrecision_Epsilon()`  
+- `testTemperatureEnumImplementsIMeasurable()`  
+- `testTemperatureDefaultMethodInheritance()`  
+- `testTemperatureValidateOperationSupport_MethodBehavior()`  
+- `testTemperatureIntegrationWithGenericQuantity()`  
+
+---
+## Conclusion
+UC14 is the most architecturally significant use case since UC10 — it reveals a real-world limitation of the existing design and resolves it through principled refactoring rather than workarounds.
+
+By introducing the `SupportsArithmetic` functional interface and `validateOperationSupport()` default method, the system achieves:
+- **Interface Segregation** — categories implement only what they genuinely support  
+- **Fail-fast safety** — unsupported operations rejected immediately with clear messages  
+- **Non-breaking evolution** — existing units require zero changes  
+- **Lambda-powered conversions** — non-linear temperature formulas expressed cleanly  
+- **Full backward compatibility** — all UC1–UC13 tests pass without modification  
+
+UC14 demonstrates that **great systems evolve gracefully** — accommodating new, structurally different requirements without breaking existing contracts or duplicating defensive code throughout the codebase.
 
 ---
