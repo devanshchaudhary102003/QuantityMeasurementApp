@@ -428,3 +428,690 @@ This proves:
 The system is now robust enough to support additional units in the future with minimal effort.
 
 ---
+
+## 📅 Date: 09 March 2026
+# Quantity Measurement App – UC5: Unit-to-Unit Conversion
+
+## Overview
+UC5 extends UC4 by introducing **explicit unit-to-unit conversion functionality**.  
+Now, instead of only checking equality, the system allows converting a value from one unit to another (e.g., Feet → Inches, Yards → Feet, Centimeters → Inches).
+
+---
+
+## Objective
+To:
+- Provide a **conversion API** for length units  
+- Support conversion across all units (Feet, Inches, Yards, Centimeters)  
+- Maintain precision and mathematical correctness  
+- Ensure robust validation and error handling  
+
+---
+
+## Features
+- Static conversion method: `convert(value, sourceUnit, targetUnit)`  
+- Instance-based conversion support  
+- Centralized conversion logic using enum  
+- Supports all combinations of unit conversions  
+- Handles edge cases (null, NaN, infinity)  
+
+---
+
+## Project Structure
+- `Quantity` – Generic class (from UC3/UC4)  
+- `LengthUnit` – Enum with conversion factors  
+- `QuantityMeasurementApp` – Demonstration methods  
+
+---
+
+## Working Flow
+1. User provides:
+   - Value  
+   - Source Unit  
+   - Target Unit  
+2. Input validation is performed  
+3. Value is converted to **base unit (feet)**  
+4. Converted from base unit to target unit  
+5. Final result is returned  
+
+---
+
+## Conversion Formula
+result = value × (sourceUnit.factor / targetUnit.factor)
+
+---
+
+## Example
+
+**Input:**  
+convert(1.0, FEET, INCHES)  
+
+**Output:**  
+12.0  
+
+**Input:**  
+convert(3.0, YARDS, FEET)  
+
+**Output:**  
+9.0  
+
+**Input:**  
+convert(36.0, INCHES, YARDS)  
+
+**Output:**  
+1.0  
+
+**Input:**  
+convert(1.0, CENTIMETERS, INCHES)  
+
+**Output:**  
+0.393701  
+
+---
+
+## Concepts Used
+
+### Enum with Conversion Factors
+- Centralized conversion logic  
+- Easy to extend  
+
+### Immutability
+- Enum constants are fixed and thread-safe  
+
+### Value Object Design
+- Quantity objects are immutable  
+
+### Method Overloading
+- Multiple methods for flexibility  
+
+### Encapsulation
+- Conversion logic hidden inside class  
+
+### Exception Handling
+- Invalid inputs handled properly  
+
+---
+
+## Test Scenarios
+
+### Basic Conversion
+- Feet ↔ Inches  
+- Yards ↔ Feet  
+
+### Cross-Unit Conversion
+- Yards ↔ Inches  
+- CM ↔ Feet  
+
+### Round-Trip Accuracy
+- A → B → A returns original value  
+
+### Zero Value
+- convert(0.0, FEET, INCHES) = 0.0  
+
+### Negative Values
+- convert(-1.0, FEET, INCHES) = -12.0  
+
+### Same Unit
+- convert(5.0, FEET, FEET) = 5.0  
+
+### Precision Handling
+- Floating-point tolerance (epsilon) used  
+
+### Invalid Input
+- Null unit → Exception  
+- NaN / Infinity → Exception  
+
+---
+
+## Sample Test Cases
+
+- `testConversion_FeetToInches()`  
+- `testConversion_InchesToFeet()`  
+- `testConversion_YardsToInches()`  
+- `testConversion_CmToInches()`  
+- `testConversion_RoundTrip()`  
+- `testConversion_ZeroValue()`  
+- `testConversion_NegativeValue()`  
+- `testConversion_InvalidUnit()`  
+- `testConversion_NaNOrInfinite()`  
+
+
+
+## Conclusion
+
+UC5 enhances the system by introducing a **powerful and flexible conversion API**.  
+The application now supports both **comparison and conversion**, making it more practical and real-world usable.
+
+With centralized logic, strong validation, and scalable design, the system is now:
+- More robust  
+- More reusable  
+- Ready for advanced operations in future use cases  
+
+---
+
+## 📅 Date: 10 March 2026
+# Quantity Measurement App – UC6: Addition of Length Units
+
+## Overview
+UC6 extends UC5 by introducing **addition operations** between length measurements.  
+It allows adding two quantities of possibly different units (Feet, Inches, Yards, Centimeters) and returns the result in the **unit of the first operand**.
+
+---
+
+## Objective
+To:
+- Enable addition of two length measurements  
+- Support cross-unit arithmetic (e.g., Feet + Inches)  
+- Maintain immutability and precision  
+- Reuse conversion logic from UC5  
+
+---
+
+## Features
+- Add two `Quantity` objects  
+- Cross-unit addition supported  
+- Result returned in the unit of the first operand  
+- Uses base unit normalization (feet)  
+- Immutable design (returns new object)  
+
+---
+
+## Project Structure
+- `Quantity` – Generic class with add() method  
+- `LengthUnit` – Enum with conversion factors  
+- `QuantityMeasurementApp` – Demo methods  
+
+---
+
+## Working Flow
+1. Two `Quantity` objects are provided  
+2. Input validation is performed  
+3. Both values are converted to **base unit (feet)**  
+4. Values are added  
+5. Result is converted back to **unit of first operand**  
+6. New `Quantity` object is returned  
+
+---
+
+## Addition Logic
+result = (value1_in_base + value2_in_base)
+
+---
+
+## Convert result back to first unit:
+final = result / firstUnit.factor
+
+---
+
+## Example
+
+**Input:**  
+add(Quantity(1.0, FEET), Quantity(2.0, FEET))  
+
+**Output:**  
+Quantity(3.0, FEET)  
+
+**Input:**  
+add(Quantity(1.0, FEET), Quantity(12.0, INCHES))  
+
+**Output:**  
+Quantity(2.0, FEET)  
+
+**Input:**  
+add(Quantity(12.0, INCHES), Quantity(1.0, FEET))  
+
+**Output:**  
+Quantity(24.0, INCHES)  
+
+**Input:**  
+add(Quantity(1.0, YARDS), Quantity(3.0, FEET))  
+
+**Output:**  
+Quantity(2.0, YARDS)  
+
+---
+
+## Concepts Used
+
+### Arithmetic on Value Objects
+- Domain-specific logic inside class  
+
+### Immutability
+- Original objects remain unchanged  
+- New object returned  
+
+### Reusability
+- Uses UC5 conversion logic  
+
+### Base Unit Normalization
+- Simplifies cross-unit operations  
+
+### Precision Handling
+- Floating-point tolerance maintained  
+
+### Type Safety
+- Only valid units allowed  
+
+### Mathematical Properties
+- Addition is commutative  
+
+---
+
+## Test Scenarios
+
+### Same Unit Addition
+- 1 ft + 2 ft = 3 ft  
+
+### Cross Unit Addition
+- 1 ft + 12 in = 2 ft  
+
+### Reverse Unit Addition
+- 12 in + 1 ft = 24 in  
+
+### Yard Conversion
+- 1 yd + 3 ft = 2 yd  
+
+### CM Conversion
+- 2.54 cm + 1 in ≈ 5.08 cm  
+
+### Identity (Zero)
+- 5 ft + 0 in = 5 ft  
+
+### Negative Values
+- 5 ft + (-2 ft) = 3 ft  
+
+### Commutativity
+- A + B = B + A  
+
+---
+
+## Sample Test Cases
+
+- `testAddition_SameUnit_FeetPlusFeet()`  
+- `testAddition_SameUnit_InchPlusInch()`  
+- `testAddition_CrossUnit_FeetPlusInches()`  
+- `testAddition_CrossUnit_InchPlusFeet()`  
+- `testAddition_CrossUnit_YardPlusFeet()`  
+- `testAddition_CrossUnit_CmPlusInch()`  
+- `testAddition_Commutativity()`  
+- `testAddition_WithZero()`  
+- `testAddition_NegativeValues()`  
+- `testAddition_NullOperand()`  
+
+---
+
+## Conclusion
+
+UC6 enhances the system by introducing **arithmetic operations on length measurements**.  
+By leveraging base unit conversion and immutable design, the application now supports **accurate and scalable addition across multiple units**.
+
+This makes the system:
+- More powerful  
+- More reusable  
+- Closer to real-world measurement applications  
+
+---
+
+## 📅 Date: 11 March 2026
+# Quantity Measurement App – UC7: Addition with Target Unit Specification
+
+## Overview
+UC7 extends UC6 by allowing the caller to **explicitly specify the target unit** for the result of an addition operation.  
+Instead of returning the result in the unit of the first operand, the result can now be expressed in **any supported unit** (Feet, Inches, Yards, Centimeters).
+
+---
+
+## Objective
+To:
+- Add flexibility in result representation  
+- Allow explicit target unit specification  
+- Maintain immutability and precision  
+- Reuse existing conversion logic  
+
+---
+
+## Features
+- Add two `Quantity` objects with a specified target unit  
+- Result returned in **user-defined unit**  
+- Supports all unit combinations  
+- Reuses UC5 conversion logic  
+- Maintains backward compatibility with UC6  
+
+---
+
+## Project Structure
+- `Quantity` – Generic class with overloaded `add()` method  
+- `LengthUnit` – Enum with conversion factors  
+- `QuantityMeasurementApp` – Demo methods  
+
+---
+
+##  Working Flow
+1. Two `Quantity` objects + target unit provided  
+2. Input validation is performed  
+3. Both values are converted to **base unit (feet)**  
+4. Values are added  
+5. Result is converted to **specified target unit**  
+6. New `Quantity` object is returned  
+
+---
+
+## ⚙️ Addition Logic
+baseSum = value1_in_base + value2_in_base
+final = baseSum / targetUnit.factor
+
+
+---
+
+## Example
+
+**Input:**  
+add(Quantity(1.0, FEET), Quantity(12.0, INCHES), FEET)  
+
+**Output:**  
+Quantity(2.0, FEET)  
+
+**Input:**  
+add(Quantity(1.0, FEET), Quantity(12.0, INCHES), INCHES)  
+
+**Output:**  
+Quantity(24.0, INCHES)  
+
+**Input:**  
+add(Quantity(1.0, FEET), Quantity(12.0, INCHES), YARDS)  
+
+**Output:**  
+Quantity(~0.667, YARDS)  
+
+**Input:**  
+add(Quantity(36.0, INCHES), Quantity(1.0, YARDS), FEET)  
+
+**Output:**  
+Quantity(6.0, FEET)  
+
+---
+
+## Concepts Used
+
+### Method Overloading
+- `add(a, b)` → UC6 behavior  
+- `add(a, b, targetUnit)` → UC7 behavior  
+
+### Explicit Parameter Control
+- Caller decides result unit  
+
+### DRY Principle
+- Shared logic reused internally  
+
+### Immutability
+- Returns new object, original unchanged  
+
+### Conversion Reusability
+- Uses UC5 base conversion  
+
+### Functional Design
+- Pure function behavior (same input → same output)  
+
+---
+
+## Test Scenarios
+
+### Target Unit = First Operand
+- Result in FEET  
+
+### Target Unit = Second Operand
+- Result in INCHES  
+
+### Target Unit = Different Unit
+- Result in YARDS / CM  
+
+### Commutativity
+- A + B = B + A (same target unit)  
+
+### Zero Handling
+- 5 ft + 0 in → correct result  
+
+### Negative Values
+- Handles subtraction via addition  
+
+### Large/Small Values
+- Precision maintained  
+
+### Invalid Input
+- Null target unit → exception  
+
+---
+
+## Sample Test Cases
+
+- `testAddition_TargetUnit_Feet()`  
+- `testAddition_TargetUnit_Inches()`  
+- `testAddition_TargetUnit_Yards()`  
+- `testAddition_TargetUnit_Centimeters()`  
+- `testAddition_Commutativity_WithTargetUnit()`  
+- `testAddition_WithZero_TargetUnit()`  
+- `testAddition_NegativeValues_TargetUnit()`  
+- `testAddition_NullTargetUnit()`  
+- `testAddition_LargeScaleConversion()`  
+
+---
+
+## Conclusion
+
+UC7 enhances the system by introducing **explicit control over the result unit**, making the API more flexible and user-friendly.
+
+By allowing the caller to choose the output unit, the system becomes:
+- More adaptable to real-world scenarios  
+- More expressive and clear in intent  
+- More powerful for complex unit operations  
+
+This marks a significant step toward building a **complete and flexible measurement system**.
+
+---
+## 📅 Date: 13 March 2026
+# Quantity Measurement App – UC8: Refactoring Unit Enum to Standalone with Conversion Responsibility
+## Overview
+UC8 refactors the design from UC1–UC7 to overcome the disadvantage of embedding the `LengthUnit` enum within the `QuantityLength` class.  
+The `LengthUnit` enum is extracted into a **standalone, top-level class** and assigned full responsibility for managing conversions to and from the base unit.
+
+---
+## Objective
+To:
+- Extract `LengthUnit` into a standalone top-level enum class  
+- Assign conversion responsibility to `LengthUnit`  
+- Simplify `QuantityLength` by delegating all conversion logic  
+- Eliminate circular dependency risk across measurement categories  
+- Maintain full backward compatibility with UC1–UC7  
+
+---
+## Features
+- `LengthUnit` as a standalone enum with `convertToBaseUnit()` and `convertFromBaseUnit()` methods  
+- `QuantityLength` simplified to focus solely on comparison and arithmetic  
+- All unit combinations supported: Feet, Inches, Yards, Centimeters  
+- Backward compatible — no client code changes required  
+- Scalable pattern for future measurement categories (Weight, Volume, Temperature)  
+
+---
+## Project Structure
+- `LengthUnit` – Standalone enum with conversion factors and conversion methods  
+- `QuantityLength` – Simplified class focused on comparison and arithmetic  
+- `QuantityMeasurementApp` – Demo methods using refactored design  
+
+---
+## Working Flow
+1. `LengthUnit` is extracted to a top-level standalone enum  
+2. Conversion factors defined as constants in `LengthUnit`  
+3. `convertToBaseUnit(value)` converts a value in this unit → feet  
+4. `convertFromBaseUnit(baseValue)` converts feet → this unit  
+5. `QuantityLength` delegates all conversion calls to `LengthUnit` methods  
+6. All existing operations (equality, conversion, addition) work identically  
+
+---
+## Conversion Logic
+
+| Unit         | Conversion Factor (to feet) |
+|--------------|-----------------------------|
+| FEET         | 1.0                         |
+| INCHES       | 1/12 ≈ 0.0833               |
+| YARDS        | 3.0                         |
+| CENTIMETERS  | 1/30.48 ≈ 0.0328            |
+
+---
+## Example
+
+**Input:**  
+`LengthUnit.INCHES.convertToBaseUnit(12.0)`  
+**Output:**  
+`1.0` (feet)
+
+**Input:**  
+`LengthUnit.INCHES.convertFromBaseUnit(1.0)`  
+**Output:**  
+`12.0` (inches)
+
+**Input:**  
+`Quantity(1.0, FEET).convertTo(INCHES)`  
+**Output:**  
+`Quantity(12.0, INCHES)`
+
+**Input:**  
+`Quantity(1.0, FEET).add(Quantity(12.0, INCHES), FEET)`  
+**Output:**  
+`Quantity(2.0, FEET)`
+
+**Input:**  
+`Quantity(36.0, INCHES).equals(Quantity(1.0, YARDS))`  
+**Output:**  
+`true`
+
+**Input:**  
+`Quantity(2.54, CENTIMETERS).convertTo(INCHES)`  
+**Output:**  
+`Quantity(~1.0, INCHES)`
+
+---
+## Concepts Used
+### Single Responsibility Principle (SRP)
+- `LengthUnit` handles conversions  
+- `QuantityLength` handles comparison and arithmetic  
+
+### Separation of Concerns
+- Unit-specific logic isolated in `LengthUnit`  
+- Domain logic isolated in `QuantityLength`  
+
+### Delegation Pattern
+- `QuantityLength` delegates via `unit.convertToBaseUnit()` and `unit.convertFromBaseUnit()`  
+
+### Circular Dependency Elimination
+- Extracting `LengthUnit` prevents cross-category circular references  
+
+### Encapsulation
+- Conversion formulas hidden within `LengthUnit` — external classes use public API only  
+
+### Scalability Pattern
+- Template established for `WeightUnit`, `VolumeUnit`, `TemperatureUnit`  
+
+### Java Enum Capabilities
+- Enums encapsulate data (conversion factors) and behavior (conversion methods)  
+- Inherently immutable and thread-safe  
+
+### Refactoring Best Practices
+- Functionality preserved while improving internal structure  
+- Backward compatibility maintained throughout  
+
+---
+## Refactoring Steps
+
+### Step 1 – Extract LengthUnit as Standalone Enum
+- Move `LengthUnit` from inside `QuantityLength` to top-level class  
+- Retain all constants: `FEET`, `INCHES`, `YARDS`, `CENTIMETERS`  
+- Add `convertToBaseUnit(double value)` method  
+- Add `convertFromBaseUnit(double baseValue)` method  
+
+### Step 2 – Refactor QuantityLength
+- Remove all internal conversion logic  
+- Delegate all conversion operations to `LengthUnit` methods  
+
+### Step 3 – Update All References
+- Ensure all imports reference standalone `LengthUnit`  
+- Remove any assumptions of `LengthUnit` being nested  
+
+### Step 4 – Maintain Backward Compatibility
+- Public API of `QuantityLength` remains unchanged  
+- All existing method signatures and behaviors preserved  
+
+### Step 5 – Verify All Test Cases
+- Run all UC1–UC7 test cases without modification  
+- Confirm no regressions in equality, conversion, or addition  
+
+---
+## Test Scenarios
+### LengthUnit Enum Constants
+- Verify `FEET`, `INCHES`, `YARDS`, `CENTIMETERS` accessible as standalone  
+
+### convertToBaseUnit
+- Feet → Feet (no change)  
+- Inches → Feet  
+- Yards → Feet  
+- Centimeters → Feet  
+
+### convertFromBaseUnit
+- Feet → Feet (no change)  
+- Feet → Inches  
+- Feet → Yards  
+- Feet → Centimeters  
+
+### Refactored QuantityLength
+- Equality using delegated conversion  
+- `convertTo()` using unit methods  
+- `add()` with and without target unit  
+
+### Invalid Input
+- Null unit → exception  
+- `Double.NaN` value → exception  
+
+### Backward Compatibility
+- All UC1–UC7 test cases pass unchanged  
+
+### Round-Trip Conversion
+- `convert(convert(value, A→B), B→A) ≈ value` within epsilon  
+
+---
+## Sample Test Cases
+- `testLengthUnitEnum_FeetConstant()`  
+- `testLengthUnitEnum_InchesConstant()`  
+- `testLengthUnitEnum_YardsConstant()`  
+- `testLengthUnitEnum_CentimetersConstant()`  
+- `testConvertToBaseUnit_FeetToFeet()`  
+- `testConvertToBaseUnit_InchesToFeet()`  
+- `testConvertToBaseUnit_YardsToFeet()`  
+- `testConvertToBaseUnit_CentimetersToFeet()`  
+- `testConvertFromBaseUnit_FeetToFeet()`  
+- `testConvertFromBaseUnit_FeetToInches()`  
+- `testConvertFromBaseUnit_FeetToYards()`  
+- `testConvertFromBaseUnit_FeetToCentimeters()`  
+- `testQuantityLengthRefactored_Equality()`  
+- `testQuantityLengthRefactored_ConvertTo()`  
+- `testQuantityLengthRefactored_Add()`  
+- `testQuantityLengthRefactored_AddWithTargetUnit()`  
+- `testQuantityLengthRefactored_NullUnit()`  
+- `testQuantityLengthRefactored_InvalidValue()`  
+- `testBackwardCompatibility_UC1EqualityTests()`  
+- `testBackwardCompatibility_UC5ConversionTests()`  
+- `testBackwardCompatibility_UC6AdditionTests()`  
+- `testBackwardCompatibility_UC7AdditionWithTargetUnitTests()`  
+- `testRoundTripConversion_RefactoredDesign()`  
+- `testUnitImmutability()`  
+- `testArchitecturalScalability_MultipleCategories()`  
+
+---
+## Conclusion
+UC8 enhances the system by introducing a **clean architectural separation** between unit conversion logic and quantity domain logic.  
+By extracting `LengthUnit` as a standalone enum with full conversion responsibility, the system becomes:
+- More cohesive — each class has a single, well-defined role  
+- More scalable — new measurement categories plug in without refactoring existing code  
+- More maintainable — conversion logic changes are isolated to `LengthUnit`  
+- Free of circular dependencies across measurement categories  
+
+This marks a foundational step toward building a **complete, enterprise-grade measurement system** supporting multiple unit categories with clean, decoupled architecture.
+
+---
