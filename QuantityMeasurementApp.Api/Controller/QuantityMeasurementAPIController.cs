@@ -1,16 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QuantityMeasurementAppModelLayer.DTOs;
-using QuantityMeasurementAppBusinessLayer.Service;
 using QuantityMeasurementAppBusinessLayer.Interface;
-using QuantityMeasurementAppRepositoryLayer.Database;
-using QuantityMeasurementAppModelLayer.Entity;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
-using QuantityMeasurementAppRepositoryLayer.Interface;
 using Microsoft.AspNetCore.Authorization;
 
 namespace QuantityMeasurementApp.Api.Controller
@@ -22,88 +13,108 @@ namespace QuantityMeasurementApp.Api.Controller
     {
         private readonly IQuantityMeasurementService Service;
 
-        public QuantityMeasurementAPIController(IQuantityMeasurementService Service)
+        public QuantityMeasurementAPIController(IQuantityMeasurementService service)
         {
-            this.Service =Service;
+            Service = service;
         }
 
+        // ── COMPARE ──────────────────────────────────────────────
         [HttpPost("compare")]
         public IActionResult Compare([FromBody] QuantityInputDTO input)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            if(input.QuantityOne == null || input.QuantityTwo == null || input.QuantityOne.Unit == null || input.QuantityTwo.Unit == null)
+            if (input.QuantityOne == null || input.QuantityTwo == null ||
+                string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
+                string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
             {
-                return BadRequest("Invalid input. Please provide valid quantity and units.");
+                return BadRequest(new { message = "Invalid input. Please provide valid quantities and units." });
             }
 
+            int userId = GetUserId();
             var result = Service.Compare(input.QuantityOne, input.QuantityTwo, userId);
             return Ok(result);
-         }
+        }
 
+        // ── ADD ───────────────────────────────────────────────────
         [HttpPost("add")]
         public IActionResult Add([FromBody] QuantityInputDTO input)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            if(input.QuantityOne == null || input.QuantityTwo == null || input.QuantityOne.Unit == null || input.QuantityTwo.Unit == null)
+            if (input.QuantityOne == null || input.QuantityTwo == null ||
+                string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
+                string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
             {
-                return BadRequest("Invalid input. Please provide valid quantity and units.");
+                return BadRequest(new { message = "Invalid input. Please provide valid quantities and units." });
             }
 
-            var result = Service.Add(input.QuantityOne,input.QuantityTwo,userId);
+            int userId = GetUserId();
+            var result = Service.Add(input.QuantityOne, input.QuantityTwo, userId);
             return Ok(result);
         }
 
+        // ── SUBTRACT ──────────────────────────────────────────────
         [HttpPost("subtract")]
         public IActionResult Subtract([FromBody] QuantityInputDTO input)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            if(input.QuantityOne == null || input.QuantityTwo == null || input.QuantityOne.Unit == null || input.QuantityTwo.Unit == null)
+            if (input.QuantityOne == null || input.QuantityTwo == null ||
+                string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
+                string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
             {
-                return BadRequest("Invalid input. Please provide valid quantity and units.");
+                return BadRequest(new { message = "Invalid input. Please provide valid quantities and units." });
             }
 
-            var result = Service.Subtract(input.QuantityOne,input.QuantityTwo,userId);
+            int userId = GetUserId();
+            var result = Service.Subtract(input.QuantityOne, input.QuantityTwo, userId);
             return Ok(result);
         }
 
+        // ── DIVIDE ────────────────────────────────────────────────
+        // BUG FIX: Original code only validated QuantityOne — divide needs both quantities.
         [HttpPost("divide")]
         public IActionResult Divide([FromBody] QuantityInputDTO input)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
-            if(input.QuantityOne == null || input.QuantityOne.Unit == null)
+            if (input.QuantityOne == null || input.QuantityTwo == null ||
+                string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
+                string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
             {
-                return BadRequest("Invalid input. Please provide valid quantity and units.");
+                return BadRequest(new { message = "Invalid input. Please provide both quantities and units." });
             }
 
-            var result = Service.Divide(input.QuantityOne,input.QuantityTwo,userId);
+            int userId = GetUserId();
+            var result = Service.Divide(input.QuantityOne, input.QuantityTwo, userId);
             return Ok(result);
         }
 
+        // ── CONVERT ───────────────────────────────────────────────
+        // BUG FIX: targetUnit moved from query-string into the request body so the
+        // frontend's JSON-only fetch works correctly (no mixed body+query issues).
         [HttpPost("convert")]
-        public IActionResult Convert([FromBody] QuantityInputDTO input, string targetUnit)
+        public IActionResult Convert([FromBody] ConvertDTO input)
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
             if (input.QuantityOne == null || string.IsNullOrWhiteSpace(input.QuantityOne.Unit))
             {
-                return BadRequest("Invalid input. Please provide valid quantity and unit.");
+                return BadRequest(new { message = "Invalid input. Please provide a valid quantity and unit." });
             }
 
-            if (string.IsNullOrWhiteSpace(targetUnit))
+            if (string.IsNullOrWhiteSpace(input.TargetUnit))
             {
-                return BadRequest("Target unit is required.");
+                return BadRequest(new { message = "Target unit is required." });
             }
 
-            var result = Service.Convert(input.QuantityOne, targetUnit, userId);
+            int userId = GetUserId();
+            var result = Service.Convert(input.QuantityOne, input.TargetUnit, userId);
             return Ok(result);
         }
 
-
+        // ── HISTORY ───────────────────────────────────────────────
         [HttpGet("history")]
         public IActionResult GetHistory()
         {
-            int userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+            int userId = GetUserId();
             var history = Service.GetHistory(userId);
             return Ok(history);
         }
+
+        // ── HELPERS ───────────────────────────────────────────────
+        private int GetUserId() =>
+            int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
     }
 }

@@ -21,9 +21,9 @@ public class QuantityMeasurementRepository : IQuantityMeasurementRepository
         _context.SaveChanges();
     }
 
-    public UserEntity? GetUserbyName(string name)
+    public UserEntity? GetUserbyEmail(string email)
     {
-        var user = _context.Users.FirstOrDefault(u => u.UserName == name);
+        var user = _context.Users.FirstOrDefault(u => u.Email == email);
         return user;
 
     }

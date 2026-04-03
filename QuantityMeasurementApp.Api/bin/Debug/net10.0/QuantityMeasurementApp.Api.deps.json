@@ -835,6 +835,7 @@
       "QuantityMeasurementAppBusinessLayer/1.0.0": {
         "dependencies": {
           "BCrypt.Net-Next": "4.1.0",
+          "Microsoft.AspNetCore.Authentication.JwtBearer": "10.0.5",
           "QuantityMeasurementAppModelLayer": "1.0.0",
           "QuantityMeasurementAppRepositoryLayer": "1.0.0"
         },

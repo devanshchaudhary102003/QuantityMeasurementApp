@@ -5,7 +5,8 @@ namespace QuantityMeasurementAppBusinessLayer.Interface
 {
     public interface IAuthService
     {
-        string Register(LoginDTO user);
+        string Register(RegisterDTO user);
         UserEntity? Login(LoginDTO user);
+        string GenerateJwtToken(UserEntity user);
     }
 }

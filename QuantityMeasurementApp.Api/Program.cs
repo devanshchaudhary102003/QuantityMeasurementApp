@@ -6,7 +6,6 @@ using QuantityMeasurementAppRepositoryLayer.Interface;
 using QuantityMeasurementAppRepositoryLayer.Database;
 using QuantityMeasurementAppBusinessLayer.Interface;
 using QuantityMeasurementAppBusinessLayer.Service;
-using System.Reflection.Metadata;
 using Microsoft.OpenApi;
 
 
@@ -61,6 +60,14 @@ builder.Services.AddAuthentication("Bearer").AddJwtBearer("Bearer",options =>
 });
 builder.Services.AddAuthorization();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy => policy.AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -72,7 +79,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();   // ✅ Add this
+app.UseCors("AllowAll"); 
+app.UseAuthentication();   
 app.UseAuthorization();
 app.MapControllers();
 
