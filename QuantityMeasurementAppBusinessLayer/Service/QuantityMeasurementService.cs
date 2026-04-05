@@ -122,6 +122,9 @@ namespace QuantityMeasurementAppBusinessLayer.Service
 
         private void SaveHistory(QuantityDTO first,QuantityDTO second,string opr,double result,int userId)
         {
+            // userId == 0 means guest — skip saving history
+            if (userId == 0) return;
+
             _repository.SaveToDatabase(new QuantityMeasurementEntity
             {
                 UserId = userId,
@@ -310,5 +313,25 @@ namespace QuantityMeasurementAppBusinessLayer.Service
                 _ => "Unknown"
             };
         }
+        public void DeleteHistory(int userId)
+        {
+            _repository.DeleteHistory(userId);
+        }
+
+        public IEnumerable<QuantityMeasurementEntity> GetHistoryByOperation(int userId, string operationType)
+        {
+            return _repository.GetHistoryByOperation(userId, operationType);
+        }
+
+        public IEnumerable<QuantityMeasurementEntity> GetHistoryByType(int userId, string measurementType)
+        {
+            return _repository.GetHistoryByType(userId, measurementType);
+        }
+
+        public object GetStats(int userId)
+        {
+            return _repository.GetStats(userId);
+        }
+
     }
 }

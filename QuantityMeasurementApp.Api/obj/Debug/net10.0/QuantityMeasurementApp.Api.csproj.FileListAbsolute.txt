@@ -167,3 +167,8 @@ C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api
 C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\obj\Debug\net10.0\QuantityMeasurementApp.Api.genruntimeconfig.cache
 C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\obj\Debug\net10.0\ref\QuantityMeasurementApp.Api.dll
 C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\bin\Debug\net10.0\BCrypt.Net-Next.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\bin\Debug\net10.0\Google.Apis.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\bin\Debug\net10.0\Google.Apis.Auth.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\bin\Debug\net10.0\Google.Apis.Core.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\bin\Debug\net10.0\System.Management.dll
+C:\Users\DELL\Desktop\Practice\QuantityMeasurementApp\QuantityMeasurementApp.Api\bin\Debug\net10.0\runtimes\win\lib\net7.0\System.Management.dll

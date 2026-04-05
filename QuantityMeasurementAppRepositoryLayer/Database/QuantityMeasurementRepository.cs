@@ -1,9 +1,7 @@
-using System.Configuration.Assemblies;
 using Microsoft.Data.SqlClient;
 using QuantityMeasurementAppModelLayer.Entity;
 using QuantityMeasurementAppRepositoryLayer.Data;
 using QuantityMeasurementAppRepositoryLayer.Interface;
-using QuantityMeasurementAppRepositoryLayer.Utils;
 
 namespace QuantityMeasurementAppRepositoryLayer.Database;
 
@@ -23,9 +21,12 @@ public class QuantityMeasurementRepository : IQuantityMeasurementRepository
 
     public UserEntity? GetUserbyEmail(string email)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Email == email);
-        return user;
+        return _context.Users.FirstOrDefault(u => u.Email == email);
+    }
 
+    public UserEntity? GetUserById(int id)
+    {
+        return _context.Users.FirstOrDefault(u => u.Id == id);
     }
 
     public void SaveToDatabase(QuantityMeasurementEntity quantity)
@@ -36,8 +37,40 @@ public class QuantityMeasurementRepository : IQuantityMeasurementRepository
 
     public IEnumerable<QuantityMeasurementEntity> GetMyDatabase(int userId)
     {
-        var result = _context.Quantity.Where(u => u.UserId == userId).ToList();
-        return result;
+        return _context.Quantity.Where(u => u.UserId == userId).ToList();
     }
 
+    public void DeleteHistory(int userId)
+    {
+        var records = _context.Quantity.Where(u => u.UserId == userId).ToList();
+        _context.Quantity.RemoveRange(records);
+        _context.SaveChanges();
+    }
+
+    public IEnumerable<QuantityMeasurementEntity> GetHistoryByOperation(int userId, string operationType)
+    {
+        return _context.Quantity
+            .Where(u => u.UserId == userId && u.Operation.ToLower() == operationType.ToLower())
+            .ToList();
+    }
+
+    public IEnumerable<QuantityMeasurementEntity> GetHistoryByType(int userId, string measurementType)
+    {
+        return _context.Quantity
+            .Where(u => u.UserId == userId && u.Category.ToLower() == measurementType.ToLower())
+            .ToList();
+    }
+
+    public object GetStats(int userId)
+    {
+        var records = _context.Quantity.Where(u => u.UserId == userId).ToList();
+        return new
+        {
+            TotalOperations = records.Count,
+            ByOperation = records.GroupBy(r => r.Operation)
+                .Select(g => new { Operation = g.Key, Count = g.Count() }),
+            ByCategory = records.GroupBy(r => r.Category)
+                .Select(g => new { Category = g.Key, Count = g.Count() })
+        };
+    }
 }

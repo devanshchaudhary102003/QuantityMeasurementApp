@@ -6,8 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace QuantityMeasurementApp.Api.Controller
 {
-    [Authorize]
-    [Route("api/[controller]")]
+    [Route("api/quantity")]
     [ApiController]
     public class QuantityMeasurementAPIController : ControllerBase
     {
@@ -18,103 +17,126 @@ namespace QuantityMeasurementApp.Api.Controller
             Service = service;
         }
 
-        // ── COMPARE ──────────────────────────────────────────────
+        // Guest-safe: userId = 0 if not logged in
+        private int GetUserId()
+        {
+            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return claim != null ? int.Parse(claim) : 0;
+        }
+
+        // POST api/quantity/compare  — no auth required
+        [AllowAnonymous]
         [HttpPost("compare")]
         public IActionResult Compare([FromBody] QuantityInputDTO input)
         {
             if (input.QuantityOne == null || input.QuantityTwo == null ||
                 string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
                 string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
-            {
-                return BadRequest(new { message = "Invalid input. Please provide valid quantities and units." });
-            }
+                return BadRequest(new { message = "Invalid input." });
 
-            int userId = GetUserId();
-            var result = Service.Compare(input.QuantityOne, input.QuantityTwo, userId);
+            var result = Service.Compare(input.QuantityOne, input.QuantityTwo, GetUserId());
             return Ok(result);
         }
 
-        // ── ADD ───────────────────────────────────────────────────
+        // POST api/quantity/add  — no auth required
+        [AllowAnonymous]
         [HttpPost("add")]
         public IActionResult Add([FromBody] QuantityInputDTO input)
         {
             if (input.QuantityOne == null || input.QuantityTwo == null ||
                 string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
                 string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
-            {
-                return BadRequest(new { message = "Invalid input. Please provide valid quantities and units." });
-            }
+                return BadRequest(new { message = "Invalid input." });
 
-            int userId = GetUserId();
-            var result = Service.Add(input.QuantityOne, input.QuantityTwo, userId);
+            var result = Service.Add(input.QuantityOne, input.QuantityTwo, GetUserId());
             return Ok(result);
         }
 
-        // ── SUBTRACT ──────────────────────────────────────────────
+        // POST api/quantity/subtract  — no auth required
+        [AllowAnonymous]
         [HttpPost("subtract")]
         public IActionResult Subtract([FromBody] QuantityInputDTO input)
         {
             if (input.QuantityOne == null || input.QuantityTwo == null ||
                 string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
                 string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
-            {
-                return BadRequest(new { message = "Invalid input. Please provide valid quantities and units." });
-            }
+                return BadRequest(new { message = "Invalid input." });
 
-            int userId = GetUserId();
-            var result = Service.Subtract(input.QuantityOne, input.QuantityTwo, userId);
+            var result = Service.Subtract(input.QuantityOne, input.QuantityTwo, GetUserId());
             return Ok(result);
         }
 
-        // ── DIVIDE ────────────────────────────────────────────────
-        // BUG FIX: Original code only validated QuantityOne — divide needs both quantities.
+        // POST api/quantity/divide  — no auth required
+        [AllowAnonymous]
         [HttpPost("divide")]
         public IActionResult Divide([FromBody] QuantityInputDTO input)
         {
             if (input.QuantityOne == null || input.QuantityTwo == null ||
                 string.IsNullOrWhiteSpace(input.QuantityOne.Unit) ||
                 string.IsNullOrWhiteSpace(input.QuantityTwo.Unit))
-            {
-                return BadRequest(new { message = "Invalid input. Please provide both quantities and units." });
-            }
+                return BadRequest(new { message = "Invalid input." });
 
-            int userId = GetUserId();
-            var result = Service.Divide(input.QuantityOne, input.QuantityTwo, userId);
+            var result = Service.Divide(input.QuantityOne, input.QuantityTwo, GetUserId());
             return Ok(result);
         }
 
-        // ── CONVERT ───────────────────────────────────────────────
-        // BUG FIX: targetUnit moved from query-string into the request body so the
-        // frontend's JSON-only fetch works correctly (no mixed body+query issues).
+        // POST api/quantity/convert  — no auth required
+        [AllowAnonymous]
         [HttpPost("convert")]
         public IActionResult Convert([FromBody] ConvertDTO input)
         {
             if (input.QuantityOne == null || string.IsNullOrWhiteSpace(input.QuantityOne.Unit))
-            {
-                return BadRequest(new { message = "Invalid input. Please provide a valid quantity and unit." });
-            }
-
+                return BadRequest(new { message = "Invalid input." });
             if (string.IsNullOrWhiteSpace(input.TargetUnit))
-            {
                 return BadRequest(new { message = "Target unit is required." });
-            }
 
-            int userId = GetUserId();
-            var result = Service.Convert(input.QuantityOne, input.TargetUnit, userId);
+            var result = Service.Convert(input.QuantityOne, input.TargetUnit, GetUserId());
             return Ok(result);
         }
 
-        // ── HISTORY ───────────────────────────────────────────────
+        // GET api/quantity/history  — AUTH REQUIRED
+        [Authorize]
         [HttpGet("history")]
         public IActionResult GetHistory()
         {
-            int userId = GetUserId();
-            var history = Service.GetHistory(userId);
+            var history = Service.GetHistory(GetUserId());
             return Ok(history);
         }
 
-        // ── HELPERS ───────────────────────────────────────────────
-        private int GetUserId() =>
-            int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+        // DELETE api/quantity/history  — AUTH REQUIRED
+        [Authorize]
+        [HttpDelete("history")]
+        public IActionResult DeleteHistory()
+        {
+            Service.DeleteHistory(GetUserId());
+            return Ok(new { message = "History deleted successfully" });
+        }
+
+        // GET api/quantity/history/operation/{operationType}  — AUTH REQUIRED
+        [Authorize]
+        [HttpGet("history/operation/{operationType}")]
+        public IActionResult GetHistoryByOperation(string operationType)
+        {
+            var history = Service.GetHistoryByOperation(GetUserId(), operationType);
+            return Ok(history);
+        }
+
+        // GET api/quantity/history/type/{measurementType}  — AUTH REQUIRED
+        [Authorize]
+        [HttpGet("history/type/{measurementType}")]
+        public IActionResult GetHistoryByType(string measurementType)
+        {
+            var history = Service.GetHistoryByType(GetUserId(), measurementType);
+            return Ok(history);
+        }
+
+        // GET api/quantity/stats  — AUTH REQUIRED
+        [Authorize]
+        [HttpGet("stats")]
+        public IActionResult GetStats()
+        {
+            var stats = Service.GetStats(GetUserId());
+            return Ok(stats);
+        }
     }
 }
