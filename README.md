@@ -1370,6 +1370,7 @@ With UC12, the Quantity Measurement Application is a **fully featured, productio
 
 ---
 ## 📅 Date: 21 March 2026
+
 # Quantity Measurement App – UC13: Centralized Arithmetic Logic to Enforce DRY in Quantity Operations
 ## Overview
 UC13 refactors the arithmetic operations (addition, subtraction, division) implemented in UC12 to **eliminate code duplication** and enforce the **DRY (Don't Repeat Yourself) principle**.  
@@ -1688,90 +1689,99 @@ UC15 refactors the monolithic Quantity Measurement Application into a profession
 
 The refactoring redistributes responsibilities as follows:
 
-- **Application Layer** (`QuantityMeasurementApp`): Entry point; initializes components and invokes the controller
-- **Controller Layer**: Handles user interactions and delegates business logic to the Service Layer
-- **Service Layer**: Contains the core business logic for comparisons, conversions, and arithmetic operations
-- **Entity/Model Layer**: Defines data structures (DTOs and Entities) used across the application
+- **Application Layer** (`QuantityMeasurementApp.Console`)
+  - Entry point of the application
+  - Handles user interaction via Menu
+  - Invokes Controller methods
 
+- **Controller Layer** (`Controller`)
+  - Acts as mediator between UI and business logic
+  - Accepts user input and converts it into DTOs
+  - Calls Service layer methods
+
+- **Business Layer** (`QuantityMeasurementAppBusinessLayer`)
+  - Contains core business rules
+  - Validates inputs and measurement types
+  - Delegates persistence to Repository Layer
+
+- **Repository Layer** (`QuantityMeasurementAppRepositoryLayer`)
+  - Handles data storage and retrieval
+  - Implements caching mechanism (Singleton)
+  - Abstracted via interface for flexibility
+
+- **Model Layer** (`QuantityMeasurementAppModelLayer`)
+  - Defines DTOs, Enums, and Entities
+  - Shared across all layers
 ---
 
 ## Objective
 
-- Refactor the monolithic `QuantityMeasurementApp` into a clean N-Tier layered architecture
-- Define POCO/DTO classes: `QuantityDTO`, `QuantityModel`, `QuantityMeasurementEntity`
-- Implement Repository pattern with `IQuantityMeasurementRepository` and `QuantityMeasurementCacheRepository`
-- Implement Service pattern with `IQuantityMeasurementService` and `QuantityMeasurementServiceImpl`
-- Implement Controller layer with `QuantityMeasurementController`
-- Apply Factory, Facade, Singleton, and Dependency Injection design patterns
-- Maintain full backward compatibility with all UC1–UC14 functionality
-
+- Refactor monolithic system into layered N-Tier architecture
+- Separate concerns into Console, Controller, Business, Repository, and Model layers
+- Define DTO and Entity classes:
+  - `QuantityDTO`
+  - `QuantityMeasurementEntity`
+- Implement Repository pattern:
+  - `IQuantityMeasurementRepository`
+  - `QuantityMeasurementCacheRepository`
+- Implement Service pattern:
+  - `IQuantityMeasurementService`
+  - `QuantityMeasurementService`
+- Implement Controller layer:
+  - `QuantityMeasurementController`
+- Apply design patterns:
+  - Singleton (Repository)
+  - Dependency Injection
+  - Facade (Controller)
+- Maintain full compatibility with UC1–UC14
 ---
 
 ## Features
 
-- Clean 4-tier architecture: Application → Controller → Service → Repository
-- Standardized data flow via `QuantityDTO` across all layer boundaries
-- In-memory cache repository with disk serialization using C# Binary Serialization (`BinaryFormatter` / `System.Text.Json`)
-- Singleton `QuantityMeasurementCacheRepository` for centralized data access
-- Custom `QuantityMeasurementException` (unchecked — inherits from `Exception`) for centralized error handling
-- Dependency injection via constructor — no tight coupling between layers
-- Controller methods named `PerformXXX` — REST-ready design for future HTTP mapping
-- All UC1–UC14 business logic preserved; only structure reorganized
+- Clean N-Tier architecture:
+  Console → Controller → Business → Repository → Model
 
----
+- DTO-based communication (`QuantityDTO`) across layers
 
-## Project Structure
+- Centralized exception handling:
+  `QuantityMeasurementException`
 
-```
-QuantityMeasurementApp.cs              ← Entry Point (Application Layer)
-QuantityMeasurementController.cs       ← Controller Layer
-IQuantityMeasurementService.cs         ← Service Interface
-QuantityMeasurementServiceImpl.cs      ← Service Implementation
-IQuantityMeasurementRepository.cs      ← Repository Interface
-QuantityMeasurementCacheRepository.cs  ← Cache Repository (Singleton)
-QuantityDTO.cs                         ← Data Transfer Object
-QuantityModel.cs                       ← Internal Model (generic)
-QuantityMeasurementEntity.cs           ← Persistence Entity (Serializable)
-QuantityMeasurementException.cs        ← Custom Exception
-```
+- In-memory cache repository:
+  `QuantityMeasurementCacheRepository`
 
+- Loose coupling via interfaces:
+  - `IQuantityMeasurementService`
+  - `IQuantityMeasurementRepository`
+
+- Dependency Injection via constructor
+
+- Support for multiple measurement types:
+  Length, Weight, Volume, Temperature
+
+- All UC1–UC14 features preserved:
+  - Equality
+  - Unit Conversion
+  - Addition / Subtraction / Division
+  
 ---
 
 ## Architecture Overview
 
 ```
-QuantityMeasurementApp.Console (Entry Point)
+
+QuantityMeasurementApp.Console (Application Layer)
         │
         ▼
-QuantityMeasurementAppBusinessLayer
+Controller Layer (QuantityMeasurementController)
         │
         ▼
-QuantityMeasurementAppRepositoryLayer 
+Business Layer (QuantityMeasurementService)
         │
         ▼
-QuantityMeasurementAppModelLayer 
-```
-
----
-
-## Data Flow — Example: Addition
-
-```
-Controller.PerformAddition(QuantityDTO a, QuantityDTO b)
-    │
-    ▼
-ServiceImpl.Add(QuantityDTO a, QuantityDTO b)
-    │── Extract QuantityModel objects from DTOs
-    │── Validate same measurement category
-    │── Perform addition using base unit conversion
-    │── Create QuantityMeasurementEntity (operand1, operand2, result)
-    │── Save entity to IQuantityMeasurementRepository
-    │
-    ▼
-Return QuantityDTO (result)
-    │
-    ▼
-Controller formats and displays result
+Repository Layer (Cache Repository)
+        │
+        ▼
+Model Layer (DTOs, Enums, Entities)
 ```
 
 ---
@@ -1793,100 +1803,153 @@ Controller formats and displays result
 ## Concepts Used
 
 ### N-Tier Architecture
-- Application, Controller, Service, Repository, and Entity layers with clear boundaries
+- Application, Controller, Business, Repository, and Model layers with clear boundaries
 - Each layer communicates only with the layer directly below it
-- Enables independent development, testing, and deployment of layers
+- Enables independent development, testing, and scalability
+
+Project Mapping:
+- Application Layer → QuantityMeasurementApp.Console
+- Controller Layer → Controller/QuantityMeasurementController.cs
+- Business Layer → QuantityMeasurementAppBusinessLayer/Service
+- Repository Layer → QuantityMeasurementAppRepositoryLayer/Cache
+- Model Layer → QuantityMeasurementAppModelLayer (DTOs, Enums, Models)
+
+---
 
 ### POCO and DTO Classes
-- **POCO**: Plain Old C# Object — only properties, constructors, getters/setters; no framework annotations
-- **DTO**: Data Transfer Object — carries only data needed for a specific operation between layers
-- `QuantityDTO` is used at the boundary between Controller and Service
-- `QuantityModel` is used internally within the Service layer
-- `QuantityMeasurementEntity` is used for persistence/history in the Repository
+- POCO: Plain Old C# Object — only properties, constructors, getters/setters
+- DTO: Data Transfer Object — used to transfer data between layers
+
+Used in project:
+- QuantityDTO → used between Controller and Service
+- QuantityMeasurementEntity → used for persistence/history in Repository
+- Enums → LengthUnit, WeightUnit, VolumeUnit, TemperatureUnit
+
+---
 
 ### Repository Pattern
-- `IQuantityMeasurementRepository` abstracts persistence implementation
-- `QuantityMeasurementCacheRepository` provides in-memory storage with disk serialization
-- Interface Segregation Principle applied: easy to swap cache for database implementation
+- IQuantityMeasurementRepository abstracts persistence
+- QuantityMeasurementCacheRepository provides in-memory storage
+
+Benefits:
+- Decouples business logic from storage
+- Easy to replace with database implementation
+
+---
 
 ### Singleton Design Pattern
-- `QuantityMeasurementCacheRepository` is a Singleton
-- Ensures one centralized cache instance throughout the application lifecycle
-- Thread-safe global access point using `lock` or `Lazy<T>` for all stored measurements
+- QuantityMeasurementCacheRepository is a Singleton
+- Ensures one centralized instance for data storage
 
-### Factory Design Pattern
-- `QuantityMeasurementApp` uses Factory pattern to create Controller and Service instances
-- Clients do not depend on concrete implementations
-- Easy to substitute mock or alternate implementations
+---
 
 ### Facade Design Pattern
-- `QuantityMeasurementController` acts as a Facade over the Service layer
-- Simplifies complex service interactions into focused API methods
-- Hides complexity of business logic from the entry point
+- QuantityMeasurementController acts as a Facade
+- Simplifies service interactions into methods like:
+  - PerformAdd()
+  - PerformCompare()
+  - PerformConvert()
+
+---
 
 ### Dependency Injection
-- Controller receives Service via constructor — not created internally
-- Service receives Repository via constructor — not created internally
-- Enables easy unit testing with mock implementations
-- Framework-ready for ASP.NET Core built-in DI or Autofac integration
+- Controller receives Service via constructor
+- Service receives Repository via constructor
+
+Benefits:
+- Loose coupling
+- Easy testing
+- Ready for ASP.NET Core DI
+
+---
 
 ### Immutability
-- `QuantityMeasurementEntity` designed to be effectively immutable
-- Multiple constructors for different operation scenarios (single operand, binary operand, error)
-- Fields use `readonly` where applicable; initialized only through constructors
+- QuantityMeasurementEntity is effectively immutable
+- Values assigned via constructor only
 
-### C# Serialization
-- `QuantityMeasurementEntity` marked with `[Serializable]` attribute
-- Uses `BinaryFormatter` or `System.Text.Json` for file-based persistence
-- Custom append logic handles writing to existing serialized files
-- Enables persistence across application restarts without a database
+---
+
+### Serialization
+- Uses System.Text.Json (recommended)
+- Enables optional persistence of data
+
+---
 
 ### Custom Exception
-- `QuantityMeasurementException` extends `Exception` (can be used as unchecked — no forced `try-catch` in C#)
-- Encapsulates all quantity measurement domain errors in one class
-- Cleaner service code without excessive boilerplate
+- QuantityMeasurementException extends Exception
+- Centralized error handling
+
+---
 
 ### Interface Segregation Principle (ISP)
-- `IQuantityMeasurementService` defines contract for business operations only
-- `IQuantityMeasurementRepository` defines contract for data access only
-- Clients depend only on the interfaces they use
+- IQuantityMeasurementService → business operations only
+- IQuantityMeasurementRepository → data access only
+
+---
 
 ### REST-Readiness
-- Controller methods named `PerformCompare`, `PerformConvert`, `PerformAdd`, etc.
-- Designed to map easily to HTTP endpoints: `POST /compare`, `POST /convert`, `POST /add`
-- `QuantityDTO` already serializable — compatible with JSON representation via `System.Text.Json`
+- Controller methods:
+  - PerformCompare
+  - PerformConvert
+  - PerformAdd
+
+- Easily map to:
+  - POST /compare
+  - POST /convert
+  - POST /add
+
+- DTOs are JSON serializable
 
 ---
 
 ## Implementation Steps
 
-1. **Add Helper Methods to IMeasurable Interface** — Add method to get measurement type from a unit; update `LengthUnit`, `WeightUnit`, `VolumeUnit`, `TemperatureUnit` enums
-2. **Define POCO and DTO Objects** — Create `QuantityDTO` with `IMeasurableUnit` interface and nested enums; create `QuantityModel<U>` and `QuantityMeasurementEntity`
-3. **Create Repository Layer** — Define `IQuantityMeasurementRepository`; implement `QuantityMeasurementCacheRepository` as Singleton with in-memory `List<T>` and disk persistence
-4. **Create Custom Exception** — Create `QuantityMeasurementException` extending `Exception`
-5. **Create Service Layer** — Define `IQuantityMeasurementService`; implement `QuantityMeasurementServiceImpl` with full business logic
-6. **Create Controller Layer** — Implement `QuantityMeasurementController` with `PerformXXX` methods; inject `IQuantityMeasurementService` via constructor
-7. **Refactor Application Entry Point** — Simplify `QuantityMeasurementApp` to initialization only; delegate demonstrations to controller
+1. Add Helper Methods to Enums
+   - Implement measurement types in:
+     LengthUnit, WeightUnit, VolumeUnit, TemperatureUnit
+
+2. Define DTO and Model Objects
+   - QuantityDTO
+   - QuantityMeasurementEntity
+
+3. Create Repository Layer
+   - IQuantityMeasurementRepository
+   - QuantityMeasurementCacheRepository (Singleton)
+
+4. Create Custom Exception
+   - QuantityMeasurementException
+
+5. Create Business Layer
+   - IQuantityMeasurementService
+   - QuantityMeasurementService
+
+6. Create Controller Layer
+   - QuantityMeasurementController
+   - Implement PerformXXX methods
+
+7. Refactor Application Layer
+   - Use Menu (IMenu, Menu.cs)
+   - Call controller methods from Program.cs
 
 ---
 
 ## Preconditions
 
-- All functionality from UC1–UC14 is fully operational
-- `IMeasurable` interface with optional arithmetic support is defined
-- `LengthUnit`, `WeightUnit`, `VolumeUnit`, `TemperatureUnit` enums are fully implemented
-- Clear understanding of N-Tier architecture and SOLID principles
+- All UC1–UC14 functionalities implemented
+- Enums for measurement types defined
+- Understanding of OOP and SOLID principles
 
 ## Postconditions
 
-- Application organized into four distinct layers with clear responsibilities
-- All UC1–UC14 test cases pass with refactored code (behavior unchanged)
-- Business logic testable without any UI dependencies
-- Services reusable in multiple contexts (CLI, REST API, GUI)
-- Dependency injection ready for framework integration (ASP.NET Core DI, Autofac)
-- Error handling centralized and consistent
-- Data flow between layers standardized and traceable
+- Application structured into layered architecture
+- All UC1–UC14 test cases pass
+- Business logic independent from UI
+- Easily extendable to API or database
 
+Code is:
+- Maintainable
+- Testable
+- Scalable
 ---
 
 ## Project Structure
@@ -2378,16 +2441,20 @@ QuantityMeasurementApp
 
 ## REST Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/quantity/compare` | Compare two quantities for equality |
-| `POST` | `/api/quantity/convert` | Convert a quantity to a different unit |
-| `POST` | `/api/quantity/add` | Add two quantities |
-| `POST` | `/api/quantity/subtract` | Subtract one quantity from another |
-| `POST` | `/api/quantity/divide` | Divide two quantities |
-| `GET` | `/api/quantity/measurements` | Retrieve all stored measurement records |
-| `GET` | `/api/quantity/measurements/{type}` | Retrieve measurements filtered by type |
+### Quantity Measurement APIs
 
+| Method | Endpoint                                           | Description                              | Auth Required |
+|--------|----------------------------------------------------|------------------------------------------|---------------|
+| POST   | /api/quantity/compare                              | Compare two quantities                   | Yes (JWT)     |
+| POST   | /api/quantity/add                                  | Add two quantities                       | Yes (JWT)     |
+| POST   | /api/quantity/subtract                             | Subtract quantities                      | Yes (JWT)     |
+| POST   | /api/quantity/divide                               | Divide quantities                        | Yes (JWT)     |
+| POST   | /api/quantity/convert                              | Convert quantity between units           | Yes (JWT)     |
+| GET    | /api/quantity/history                              | Get all operation history                | Yes (JWT)     |
+| DELETE | /api/quantity/history                              | Delete all history                       | Yes (JWT)     |
+| GET    | /api/quantity/history/operation/{operationType}    | Filter history by operation type         | Yes (JWT)     |
+| GET    | /api/quantity/history/type/{measurementType}       | Filter history by measurement type       | Yes (JWT)     |
+| GET    | /api/quantity/stats                                | Get statistics of operations             | Yes (JWT)     |
 ---
 
 ## Build Commands
@@ -2623,14 +2690,29 @@ QuantityMeasurementApp
 
 ## Security Endpoints
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| `POST` | `/api/auth/register` | Register new user | No |
-| `POST` | `/api/auth/login` | Authenticate; receive JWT + refresh token | No |
-| `POST` | `/api/auth/refresh` | Exchange refresh token for new access token | No |
-| `POST` | `/api/auth/revoke` | Revoke refresh token | Yes |
-| `GET` | `/api/quantity/measurements` | Get all measurements | Yes (JWT) |
-| `POST` | `/api/quantity/add` | Add quantities | Yes (JWT) |
+### Auth API
+
+| Method | Endpoint             | Description                          | Auth Required |
+|--------|--------------------|--------------------------------------|---------------|
+| POST   | /api/auth/register | Register new user                    | No            |
+| POST   | /api/auth/login    | Login user (returns JWT token)       | No            |
+| POST   | /api/auth/google   | Login using Google authentication    | No            |
+| GET    | /api/auth/me       | Get current logged-in user details   | Yes (JWT)     |
+
+### Quantity Measurement APIs
+
+| Method | Endpoint                                           | Description                              | Auth Required |
+|--------|----------------------------------------------------|------------------------------------------|---------------|
+| POST   | /api/quantity/compare                              | Compare two quantities                   | Yes (JWT)     |
+| POST   | /api/quantity/add                                  | Add two quantities                       | Yes (JWT)     |
+| POST   | /api/quantity/subtract                             | Subtract quantities                      | Yes (JWT)     |
+| POST   | /api/quantity/divide                               | Divide quantities                        | Yes (JWT)     |
+| POST   | /api/quantity/convert                              | Convert quantity between units           | Yes (JWT)     |
+| GET    | /api/quantity/history                              | Get all operation history                | Yes (JWT)     |
+| DELETE | /api/quantity/history                              | Delete all history                       | Yes (JWT)     |
+| GET    | /api/quantity/history/operation/{operationType}    | Filter history by operation type         | Yes (JWT)     |
+| GET    | /api/quantity/history/type/{measurementType}       | Filter history by measurement type       | Yes (JWT)     |
+| GET    | /api/quantity/stats                                | Get statistics of operations             | Yes (JWT)     |
 
 ---
 
