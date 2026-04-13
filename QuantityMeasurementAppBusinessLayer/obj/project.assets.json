@@ -2930,11 +2930,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppBusinessLayer\\QuantityMeasurementAppBusinessLayer.csproj",
+      "projectUniqueName": "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppBusinessLayer\\QuantityMeasurementAppBusinessLayer.csproj",
       "projectName": "QuantityMeasurementAppBusinessLayer",
-      "projectPath": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppBusinessLayer\\QuantityMeasurementAppBusinessLayer.csproj",
+      "projectPath": "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppBusinessLayer\\QuantityMeasurementAppBusinessLayer.csproj",
       "packagesPath": "C:\\Users\\DELL\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppBusinessLayer\\obj\\",
+      "outputPath": "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppBusinessLayer\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2955,11 +2955,11 @@
         "net10.0": {
           "targetAlias": "net10.0",
           "projectReferences": {
-            "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppModelLayer\\QuantityMeasurementAppModelLayer.csproj": {
-              "projectPath": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppModelLayer\\QuantityMeasurementAppModelLayer.csproj"
+            "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppModelLayer\\QuantityMeasurementAppModelLayer.csproj": {
+              "projectPath": "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppModelLayer\\QuantityMeasurementAppModelLayer.csproj"
             },
-            "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppRepositoryLayer\\QuantityMeasurementAppRepositoryLayer.csproj": {
-              "projectPath": "C:\\Users\\DELL\\Desktop\\Practice\\QuantityMeasurementApp\\QuantityMeasurementAppRepositoryLayer\\QuantityMeasurementAppRepositoryLayer.csproj"
+            "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppRepositoryLayer\\QuantityMeasurementAppRepositoryLayer.csproj": {
+              "projectPath": "C:\\Users\\DELL\\Desktop\\QuantityMeasurementApp\\QuantityMeasurementApp\\QuantityMeasurementAppRepositoryLayer\\QuantityMeasurementAppRepositoryLayer.csproj"
             }
           }
         }
