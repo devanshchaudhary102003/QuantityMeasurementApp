@@ -1,64 +1,86 @@
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuantityMeasurementAppModelLayer.DTOs;
-using QuantityMeasurementAppBusinessLayer.Service;
 using QuantityMeasurementAppBusinessLayer.Interface;
-using QuantityMeasurementAppRepositoryLayer.Database;
 using QuantityMeasurementAppModelLayer.Entity;
-using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using System.IdentityModel.Tokens.Jwt;
-using QuantityMeasurementAppRepositoryLayer.Interface;
 
-namespace QuantityMeasurementApp.Api.Controller{
-
+namespace QuantityMeasurementApp.Api.Controller
+{
     [Route("/api/auth")]
     [ApiController]
     public class AuthController : ControllerBase
     {
-
         private readonly IAuthService _auth;
+
         public AuthController(IAuthService auth)
         {
             _auth = auth;
         }
 
+        // POST /api/auth/register
+        [HttpPost("register")]
+        public IActionResult Register([FromBody] RegisterDTO register)
+        {
+            string result = _auth.Register(register);
+            return Ok(new { message = result });
+        }
+
+        // POST /api/auth/login
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginDTO login)
         {
             var user = _auth.Login(login);
-            if(user == null) return BadRequest(new {message = "Invalid Credentials"});
-            string token = GenerateJwtToken(user);
-            return Ok(new {message = "Success: Login",user.UserName,token});
-        }
-        [HttpPost("register")]
-        public IActionResult Register([FromBody] LoginDTO register)
-        {
-            string result = _auth.Register(register);
-            return Ok(new {message = result});
+            if (user == null) return BadRequest(new { message = "Invalid credentials" });
+            string token = _auth.GenerateJwtToken(user);
+            return Ok(new { message = "Success: Login", user.UserName, token });
         }
 
-        private string GenerateJwtToken(UserEntity user)
+        // POST /api/auth/google
+        // Body: { "idToken": "<google-id-token-from-frontend>" }
+        // Returns the same JWT as login so client can use it for all secured endpoints
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleLoginDTO dto)
         {
-            var claims = new[]
+            if (string.IsNullOrWhiteSpace(dto.IdToken))
+                return BadRequest(new { message = "idToken is required" });
+
+            var user = await _auth.LoginWithGoogle(dto.IdToken);
+            if (user == null) return Unauthorized(new { message = "Invalid Google token" });
+
+            string token = _auth.GenerateJwtToken(user);
+
+            // Returns idToken (the original Google one) + our JWT token
+            return Ok(new
             {
-                new Claim(ClaimTypes.Name,user.UserName),
-                new Claim("UserId",user.Id.ToString())
-            };
+                message = "Success: Google Login",
+                user.UserName,
+                user.Email,
+                idToken = dto.IdToken,   // original Google ID token
+                token                    // our JWT for subsequent API calls
+            });
+        }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("THIS_IS_A_SUPER_SECRET_KEY_1234567890"));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        // GET /api/auth/me   [Authorized]
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var idClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (idClaim == null) return Unauthorized();
 
-            var token = new JwtSecurityToken(
-                issuer: "QuantityMeasurementAPI",
-                audience: "QuantityMeasurementAPI",
-                claims: claims,
-                expires: DateTime.Now.AddHours(1),
-                signingCredentials: creds
-            );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            int userId = int.Parse(idClaim);
+            var user = _auth.GetUserById(userId);
+            if (user == null) return NotFound(new { message = "User not found" });
+
+            return Ok(new
+            {
+                user.Id,
+                user.UserName,
+                user.Email,
+                user.Phone,
+                user.CreatedAt
+            });
         }
     }
 }

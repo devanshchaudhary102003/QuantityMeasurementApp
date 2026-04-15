@@ -22,7 +22,7 @@ namespace QuantityMeasurementAppRepositoryLayer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("QuantityMeasurementAppModelLayer.Models.QuantityMeasurementEntity", b =>
+            modelBuilder.Entity("QuantityMeasurementAppModelLayer.Entity.QuantityMeasurementEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -65,7 +65,7 @@ namespace QuantityMeasurementAppRepositoryLayer.Migrations
                     b.ToTable("Quantity");
                 });
 
-            modelBuilder.Entity("QuantityMeasurementAppModelLayer.Models.UserEntity", b =>
+            modelBuilder.Entity("QuantityMeasurementAppModelLayer.Entity.UserEntity", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -76,7 +76,15 @@ namespace QuantityMeasurementAppRepositoryLayer.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -89,9 +97,9 @@ namespace QuantityMeasurementAppRepositoryLayer.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("QuantityMeasurementAppModelLayer.Models.QuantityMeasurementEntity", b =>
+            modelBuilder.Entity("QuantityMeasurementAppModelLayer.Entity.QuantityMeasurementEntity", b =>
                 {
-                    b.HasOne("QuantityMeasurementAppModelLayer.Models.UserEntity", "Users")
+                    b.HasOne("QuantityMeasurementAppModelLayer.Entity.UserEntity", "Users")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
