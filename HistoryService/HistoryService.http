@@ -1,0 +1,24 @@
+@HistoryService_HostAddress = http://localhost:5003
+
+### Save History (internal call from QMAOperationService)
+POST {{HistoryService_HostAddress}}/api/history
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "value1": 1,
+  "value2": 12,
+  "unit1": "Feet",
+  "unit2": "Inch",
+  "category": "Length",
+  "operation": "Compare",
+  "result": 1.0
+}
+
+### Get history (needs JWT)
+GET {{HistoryService_HostAddress}}/api/history
+Authorization: Bearer PASTE_TOKEN_HERE
+
+### Get stats
+GET {{HistoryService_HostAddress}}/api/history/stats
+Authorization: Bearer PASTE_TOKEN_HERE

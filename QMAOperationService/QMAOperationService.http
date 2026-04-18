@@ -1,0 +1,28 @@
+@QMAOperationService_HostAddress = http://localhost:5002
+
+### Compare
+POST {{QMAOperationService_HostAddress}}/api/quantity/compare
+Content-Type: application/json
+
+{
+  "quantityOne": { "value": 1, "unit": "Feet", "category": "Length" },
+  "quantityTwo": { "value": 12, "unit": "Inch", "category": "Length" }
+}
+
+### Add
+POST {{QMAOperationService_HostAddress}}/api/quantity/add
+Content-Type: application/json
+
+{
+  "quantityOne": { "value": 1, "unit": "Feet", "category": "Length" },
+  "quantityTwo": { "value": 12, "unit": "Inch", "category": "Length" }
+}
+
+### Convert
+POST {{QMAOperationService_HostAddress}}/api/quantity/convert
+Content-Type: application/json
+
+{
+  "quantityOne": { "value": 1, "unit": "Feet", "category": "Length" },
+  "targetUnit": "Centimeter"
+}

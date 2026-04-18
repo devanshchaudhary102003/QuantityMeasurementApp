@@ -1,0 +1,25 @@
+@AuthService_HostAddress = http://localhost:5001
+
+### Register
+POST {{AuthService_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "tennyson",
+  "email": "tennyson@test.com",
+  "password": "123456",
+  "phone": "9999999999"
+}
+
+### Login
+POST {{AuthService_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "tennyson@test.com",
+  "password": "123456"
+}
+
+### Me (needs JWT)
+GET {{AuthService_HostAddress}}/api/auth/me
+Authorization: Bearer PASTE_TOKEN_HERE
